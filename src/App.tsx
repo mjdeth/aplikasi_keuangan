@@ -5,9 +5,9 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  X, 
-  CheckCircle, 
+import {
+  X,
+  CheckCircle,
   AlertCircle,
   Menu,
   Sparkles,
@@ -23,12 +23,13 @@ import ReportsView from './components/ReportsView';
 import SettingsView from './components/SettingsView';
 import AuthView from './components/AuthView';
 import TransactionModal from './components/TransactionModal';
+import HelpCenter from './components/HelpCenter';
 
-import { 
-  INITIAL_TRANSACTIONS, 
-  INITIAL_BUSINESS_PROFILE, 
-  INITIAL_USER_PROFILE, 
-  INITIAL_PREFERENCES 
+import {
+  INITIAL_TRANSACTIONS,
+  INITIAL_BUSINESS_PROFILE,
+  INITIAL_USER_PROFILE,
+  INITIAL_PREFERENCES
 } from './data/initialData';
 
 export default function App() {
@@ -68,7 +69,7 @@ export default function App() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isAddTxModalOpen, setIsAddTxModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
-  
+
   // Filtering & Search state query params (Shared by Header/Sidebar to filter list dynamically)
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('Semua Kategori');
@@ -167,7 +168,7 @@ export default function App() {
     switch (activeTab) {
       case 'landing':
         return (
-          <LandingPage 
+          <LandingPage
             onJoinDemo={() => {
               setIsAuthenticated(true);
               setActiveTab('dashboard');
@@ -176,7 +177,7 @@ export default function App() {
             onGoToAuth={handleGoToAuthRegister}
           />
         );
-      
+
       case 'dashboard':
       case 'income':
       case 'expenses':
@@ -196,7 +197,7 @@ export default function App() {
 
       case 'reports':
         return (
-          <ReportsView 
+          <ReportsView
             transactions={transactions}
             onToast={dispatchToast}
           />
@@ -218,13 +219,14 @@ export default function App() {
       case 'auth':
         return (
           <div className="flex items-center justify-center min-h-[calc(100vh-160px)] px-4 py-8">
-            <AuthView 
+            <AuthView
               onLoginSuccess={handleLoginSuccess}
               onToast={dispatchToast}
             />
           </div>
         );
-
+      case 'help':
+        return <HelpCenter />;
       default:
         return <div className="text-center p-12 font-bold">Laman tidak ditemukan.</div>;
     }
@@ -234,7 +236,7 @@ export default function App() {
 
   return (
     <div className="bg-[#f8f9ff] min-h-screen text-[#0b1c30] select-none font-sans antialiased">
-      
+
       {/* 1. Shell Sidebar & Main Contents Container */}
       {isMainShellTab && isAuthenticated ? (
         <div className="flex h-screen overflow-hidden">
@@ -268,7 +270,7 @@ export default function App() {
 
             {/* Layout Canvas Body */}
             <main className="flex-1 px-6 py-6 w-full pb-16">
-            {renderTabContent()}
+              {renderTabContent()}
             </main>
           </div>
         </div>
@@ -277,8 +279,8 @@ export default function App() {
         <div className="min-h-screen flex flex-col">
           {/* Suppressed header with brand back link */}
           <header className="sticky top-0 z-50 flex justify-between items-center w-full px-6 py-4 bg-white/80 backdrop-blur-md border-b border-[#c5c6cd]">
-            <div 
-              className="flex items-center gap-2.5 cursor-pointer" 
+            <div
+              className="flex items-center gap-2.5 cursor-pointer"
               onClick={() => setActiveTab('landing')}
               id="landing-logo-home-link"
             >
@@ -287,7 +289,7 @@ export default function App() {
               </div>
               <span className="font-sans text-sm font-extrabold text-[#0b1c30]">EquiCount SME</span>
             </div>
-            
+
             <div className="flex items-center gap-4 text-xs font-semibold">
               <span className="text-slate-400 hidden sm:inline">Pencatatan Presisi untuk Keamanan Finansial</span>
               {activeTab === 'landing' ? (
@@ -326,7 +328,7 @@ export default function App() {
       />
 
       {/* 3. Global Toasts Dispatch Notifications Container */}
-      <div 
+      <div
         className="fixed bottom-6 right-6 z-[100] max-w-sm w-full space-y-2 pointer-events-none"
         id="global-toasts-container"
       >
@@ -338,11 +340,10 @@ export default function App() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.15 }}
-              className={`p-3.5 rounded-xl border flex items-start gap-2.5 pointer-events-auto shadow-lg bg-white/95 backdrop-blur-xs ${
-                toast.status === 'success' 
-                  ? 'border-[#6cf8bb]/60 shadow-[#6cf8bb]/10 text-slate-800' 
-                  : 'border-red-200 text-[#ba1a1a]'
-              }`}
+              className={`p-3.5 rounded-xl border flex items-start gap-2.5 pointer-events-auto shadow-lg bg-white/95 backdrop-blur-xs ${toast.status === 'success'
+                ? 'border-[#6cf8bb]/60 shadow-[#6cf8bb]/10 text-slate-800'
+                : 'border-red-200 text-[#ba1a1a]'
+                }`}
             >
               {toast.status === 'success' ? (
                 <CheckCircle className="w-5 h-5 text-[#006c49] shrink-0 mt-0.5" />

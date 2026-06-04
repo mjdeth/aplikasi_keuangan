@@ -4,14 +4,14 @@
  */
 
 import { useState } from 'react';
-import { 
-  Building2, 
-  User, 
-  Bell, 
-  MapPin, 
-  Phone, 
-  RefreshCw, 
-  CheckCircle, 
+import {
+  Building2,
+  User,
+  Bell,
+  MapPin,
+  Phone,
+  RefreshCw,
+  CheckCircle,
   Fingerprint,
   Briefcase
 } from 'lucide-react';
@@ -113,10 +113,10 @@ export default function SettingsView({
 
   return (
     <div className="space-y-6 select-none animate-in fade-in duration-200">
-      
+
       {/* Bento Grid Layout */}
       <div className="grid grid-cols-12 gap-6">
-        
+
         {/* Left Column: Business Profile (Span 8) */}
         <div className="col-span-12 lg:col-span-8">
           <section className="bg-white border border-[#c5c6cd] rounded-2xl p-6 sm:p-8 space-y-6">
@@ -132,21 +132,21 @@ export default function SettingsView({
 
             {/* Logo Section */}
             <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-slate-50 rounded-2xl border border-dashed border-[#c5c6cd]">
-              <img 
-                src={bizLogo} 
-                alt="Business Logo" 
+              <img
+                src={bizLogo}
+                alt="Business Logo"
                 className="w-20 h-20 rounded-xl bg-white border border-slate-200 object-contain p-2 shrink-0 shadow-xs"
               />
               <div className="text-center sm:text-left space-y-2">
                 <p className="font-bold text-xs text-[#0b1c30]">Logo Perusahaan</p>
                 <div className="flex flex-wrap justify-center sm:justify-start gap-2.5">
-                  <button 
+                  <button
                     onClick={handleLogoUpload}
                     className="px-4 py-2 bg-[#006c49] hover:bg-emerald-800 text-white text-xs font-bold rounded-lg transition-all cursor-pointer shadow-sm"
                   >
                     Ganti Logo
                   </button>
-                  <button 
+                  <button
                     onClick={handleLogoRemove}
                     className="px-4 py-2 border border-[#c5c6cd] text-[#45474c] hover:bg-slate-100 text-xs font-bold rounded-lg transition-colors cursor-pointer"
                   >
@@ -251,7 +251,7 @@ export default function SettingsView({
               </div>
 
               <div className="pt-2">
-                <button 
+                <button
                   type="button"
                   onClick={() => onToast('Tautan pengubah sandi aman dikirim ke email Anda.', 'success')}
                   className="w-full py-2.5 border border-[#c5c6cd] hover:bg-slate-50 text-xs font-bold text-slate-600 rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer"
@@ -280,15 +280,15 @@ export default function SettingsView({
                   <p className="text-[10px] text-slate-400 mt-0.5">Info transaksi masuk / keluar</p>
                 </div>
                 <label className="relative inline-block w-10 h-5 cursor-pointer">
-                  <input 
+                  <input
                     type="checkbox"
                     checked={hasEmailNotif}
                     onChange={(e) => setHasEmailNotif(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-full h-full bg-[#c5c6cd] rounded-full peer-checked:bg-[#006c49] transition-colors duration-200">
-                    <div className="w-3.5 h-3.5 bg-white rounded-full absolute left-0.5 top-0.5 transition-transform duration-200 peer-checked:translate-x-5" />
-                  </div>
+                  {/* Background Toggle */}
+                  <div className="w-full h-full bg-[#c5c6cd] rounded-full peer-checked:bg-[#006c49] transition-colors duration-200"></div>
+                  <div className="w-3.5 h-3.5 bg-white rounded-full absolute left-0.5 top-0.5 transition-transform duration-200 peer-checked:translate-x-5" />
                 </label>
               </div>
 
@@ -299,15 +299,15 @@ export default function SettingsView({
                   <p className="text-[10px] text-slate-400 mt-0.5">Arsip PDF otomatis tiap Senin</p>
                 </div>
                 <label className="relative inline-block w-10 h-5 cursor-pointer">
-                  <input 
+                  <input
                     type="checkbox"
                     checked={hasWeeklyReport}
                     onChange={(e) => setHasWeeklyReport(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-full h-full bg-[#c5c6cd] rounded-full peer-checked:bg-[#006c49] transition-colors duration-200">
-                    <div className="w-3.5 h-3.5 bg-white rounded-full absolute left-0.5 top-0.5 transition-transform duration-200 peer-checked:translate-x-5" />
-                  </div>
+                  {/* Background Toggle */}
+                  <div className="w-full h-full bg-[#c5c6cd] rounded-full peer-checked:bg-[#006c49] transition-colors duration-200"></div>
+                  <div className="w-3.5 h-3.5 bg-white rounded-full absolute left-0.5 top-0.5 transition-transform duration-200 peer-checked:translate-x-5" />
                 </label>
               </div>
 
@@ -318,15 +318,15 @@ export default function SettingsView({
                   <p className="text-[10px] text-slate-400 mt-0.5">Gunakan enkripsi autentikasi</p>
                 </div>
                 <label className="relative inline-block w-10 h-5 cursor-pointer">
-                  <input 
+                  <input
                     type="checkbox"
                     checked={hasTwoFactor}
                     onChange={(e) => setHasTwoFactor(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-full h-full bg-[#c5c6cd] rounded-full peer-checked:bg-[#006c49] transition-colors duration-200">
-                    <div className="w-3.5 h-3.5 bg-white rounded-full absolute left-0.5 top-0.5 transition-transform duration-200 peer-checked:translate-x-5" />
-                  </div>
+                  {/* Background Toggle */}
+                  <div className="w-full h-full bg-[#c5c6cd] rounded-full peer-checked:bg-[#006c49] transition-colors duration-200"></div>
+                  <div className="w-3.5 h-3.5 bg-white rounded-full absolute left-0.5 top-0.5 transition-transform duration-200 peer-checked:translate-x-5" />
                 </label>
               </div>
             </div>
