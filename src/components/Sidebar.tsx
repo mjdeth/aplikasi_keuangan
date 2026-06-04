@@ -3,19 +3,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { 
-  LayoutDashboard, 
-  ArrowDownLeft, 
-  ArrowUpRight, 
-  TrendingUp, 
-  Settings, 
-  PlusCircle, 
-  HelpCircle, 
+import {
+  LayoutDashboard,
+  ArrowDownLeft,
+  ArrowUpRight,
+  TrendingUp,
+  Settings,
+  PlusCircle,
+  HelpCircle,
   LogOut,
   Menu,
   X,
   Lock,
-  Compass
+  Compass,
+  HelpCircleIcon
 } from 'lucide-react';
 import { ActiveTab } from '../types';
 
@@ -38,7 +39,7 @@ export default function Sidebar({
   onLogout,
   isAuthenticated
 }: SidebarProps) {
-  
+
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'income', label: 'Pemasukan', icon: ArrowDownLeft },
@@ -74,7 +75,7 @@ export default function Sidebar({
       {isAuthenticated ? (
         <>
           {/* Quick Transaction Action Button */}
-          <button 
+          <button
             onClick={() => {
               onOpenAddTransaction();
               setIsOpenMobile(false);
@@ -107,7 +108,7 @@ export default function Sidebar({
           {/* Bottom actions */}
           <div className="mt-auto pt-6 border-t border-[#c5c6cd] space-y-1">
             <button
-              onClick={() => handleTabClick('settings')}
+              onClick={() => handleTabClick('help')}
               className="w-full flex items-center gap-3 px-4 py-2 text-sm text-[#45474c] hover:text-[#0b1c30] hover:bg-[#eff4ff] rounded-lg transition-all text-left"
               id="sidebar-help-btn"
             >
@@ -157,7 +158,7 @@ export default function Sidebar({
   return (
     <>
       {/* Desktop Sidebar: hidden on mobile, fixed width on desktop */}
-      <aside 
+      <aside
         className="hidden md:flex flex-col h-screen w-[280px] shrink-0 bg-white border-r border-[#c5c6cd]"
       >
         {renderContent()}
@@ -165,21 +166,20 @@ export default function Sidebar({
 
       {/* Mobile Drawer Overlay */}
       {isOpenMobile && (
-        <div 
-          className="md:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[60] transition-opacity" 
+        <div
+          className="md:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[60] transition-opacity"
           onClick={() => setIsOpenMobile(false)}
         />
       )}
 
       {/* Mobile Sidebar Slide-out */}
       <aside
-        className={`md:hidden fixed top-0 bottom-0 left-0 w-[280px] bg-white border-r border-[#c5c6cd] z-[70] transform transition-transform duration-300 ease-in-out ${
-          isOpenMobile ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`md:hidden fixed top-0 bottom-0 left-0 w-[280px] bg-white border-r border-[#c5c6cd] z-[70] transform transition-transform duration-300 ease-in-out ${isOpenMobile ? 'translate-x-0' : '-translate-x-full'
+          }`}
         id="mobile-sidebar-shell"
       >
         {/* Close Button Inside Slide-out */}
-        <button 
+        <button
           onClick={() => setIsOpenMobile(false)}
           className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 text-[#45474c] hover:text-[#0b1c30]"
         >
