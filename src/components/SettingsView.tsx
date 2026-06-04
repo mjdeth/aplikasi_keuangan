@@ -1,0 +1,372 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import { useState } from 'react';
+import { 
+  Building2, 
+  User, 
+  Bell, 
+  MapPin, 
+  Phone, 
+  RefreshCw, 
+  CheckCircle, 
+  Fingerprint,
+  Briefcase
+} from 'lucide-react';
+import { BusinessProfile, UserProfile, Preferences } from '../types';
+
+interface SettingsViewProps {
+  businessProfile: BusinessProfile;
+  setBusinessProfile: (profile: BusinessProfile) => void;
+  userProfile: UserProfile;
+  setUserProfile: (profile: UserProfile) => void;
+  preferences: Preferences;
+  setPreferences: (prefs: Preferences) => void;
+  onToast: (msg: string, status?: 'success' | 'error') => void;
+}
+
+export default function SettingsView({
+  businessProfile,
+  setBusinessProfile,
+  userProfile,
+  setUserProfile,
+  preferences,
+  setPreferences,
+  onToast
+}: SettingsViewProps) {
+  // Local temporary edits
+  const [bizName, setBizName] = useState(businessProfile.name);
+  const [bizType, setBizType] = useState(businessProfile.type);
+  const [bizAddress, setBizAddress] = useState(businessProfile.address);
+  const [bizPhone, setBizPhone] = useState(businessProfile.phone);
+  const [bizLogo, setBizLogo] = useState(businessProfile.logoUrl);
+
+  const [userName, setUserName] = useState(userProfile.fullName);
+  const [userEmail, setUserEmail] = useState(userProfile.email);
+
+  const [hasEmailNotif, setHasEmailNotif] = useState(preferences.emailNotification);
+  const [hasWeeklyReport, setHasWeeklyReport] = useState(preferences.weeklyReport);
+  const [hasTwoFactor, setHasTwoFactor] = useState(preferences.twoFactorAuth);
+
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSaveAll = () => {
+    setIsSaving(true);
+    setTimeout(() => {
+      // Save business profile
+      setBusinessProfile({
+        name: bizName,
+        type: bizType,
+        address: bizAddress,
+        phone: bizPhone,
+        logoUrl: bizLogo
+      });
+
+      // Save user profile
+      setUserProfile({
+        ...userProfile,
+        fullName: userName,
+        email: userEmail
+      });
+
+      // Save preferences
+      setPreferences({
+        emailNotification: hasEmailNotif,
+        weeklyReport: hasWeeklyReport,
+        twoFactorAuth: hasTwoFactor
+      });
+
+      setIsSaving(false);
+      onToast('Pengaturan Profil & Bisnis berhasil diperbarui!', 'success');
+    }, 1200);
+  };
+
+  const handleReset = () => {
+    setBizName(businessProfile.name);
+    setBizType(businessProfile.type);
+    setBizAddress(businessProfile.address);
+    setBizPhone(businessProfile.phone);
+    setBizLogo(businessProfile.logoUrl);
+    setUserName(userProfile.fullName);
+    setUserEmail(userProfile.email);
+    setHasEmailNotif(preferences.emailNotification);
+    setHasWeeklyReport(preferences.weeklyReport);
+    setHasTwoFactor(preferences.twoFactorAuth);
+    onToast('Perubahan dibatalkan.', 'error');
+  };
+
+  const handleLogoUpload = () => {
+    // Simulated upload of new logo
+    const urls = [
+      'https://lh3.googleusercontent.com/aida-public/AB6AXuAPrQd6vZOE_-ZdY8GFjAv3y1pJSuTJZNH2z8-DhZHZ2AKmeJmDg-7I_I-qWiP8gO4OroPFvdWs-9ry1EXgCyBNUbEa8l58kpFbjYjsYA9aiuurJ5-nbfWVAt0U730MYSRmacbTmubftH2NijHDi6-7avP7k3ruux8qz9Ox60R_HGR-kfnT5_S9wkEzNwmPHrAW7Uf7T6019RHlHj9iVexay_V110jFHrCpv4bOPNsaax50BRtIUHjGX51zOGrneiwvcYafApgTfAxK'
+    ];
+    setBizLogo(urls[0]);
+    onToast('Logo bisnis berhasil disimulasikan.', 'success');
+  };
+
+  const handleLogoRemove = () => {
+    setBizLogo('https://cdn-icons-png.flaticon.com/512/3135/3135715.png');
+    onToast('Logo bisnis dihapus.', 'success');
+  };
+
+  return (
+    <div className="space-y-6 select-none animate-in fade-in duration-200">
+      
+      {/* Bento Grid Layout */}
+      <div className="grid grid-cols-12 gap-6">
+        
+        {/* Left Column: Business Profile (Span 8) */}
+        <div className="col-span-12 lg:col-span-8">
+          <section className="bg-white border border-[#c5c6cd] rounded-2xl p-6 sm:p-8 space-y-6">
+            <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+              <div className="p-2.5 bg-[#e5eeff] text-[#091426] rounded-xl">
+                <Building2 className="w-5 h-5 shrink-0" />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm text-[#0b1c30]">Profil Perusahaan</h3>
+                <p className="text-[10px] text-slate-500 font-mono tracking-wide uppercase mt-0.5">BUSINESS DATA SHEET</p>
+              </div>
+            </div>
+
+            {/* Logo Section */}
+            <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-slate-50 rounded-2xl border border-dashed border-[#c5c6cd]">
+              <img 
+                src={bizLogo} 
+                alt="Business Logo" 
+                className="w-20 h-20 rounded-xl bg-white border border-slate-200 object-contain p-2 shrink-0 shadow-xs"
+              />
+              <div className="text-center sm:text-left space-y-2">
+                <p className="font-bold text-xs text-[#0b1c30]">Logo Perusahaan</p>
+                <div className="flex flex-wrap justify-center sm:justify-start gap-2.5">
+                  <button 
+                    onClick={handleLogoUpload}
+                    className="px-4 py-2 bg-[#006c49] hover:bg-emerald-800 text-white text-xs font-bold rounded-lg transition-all cursor-pointer shadow-sm"
+                  >
+                    Ganti Logo
+                  </button>
+                  <button 
+                    onClick={handleLogoRemove}
+                    className="px-4 py-2 border border-[#c5c6cd] text-[#45474c] hover:bg-slate-100 text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                  >
+                    Hapus
+                  </button>
+                </div>
+                <p className="text-[10px] text-slate-400 font-medium">Batas ukuran 2MB (JPG, PNG). Resolusi disarankan 512×512 px.</p>
+              </div>
+            </div>
+
+            {/* Fields Form */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider font-mono">NAMA BISNIS / TOKO</label>
+                <div className="relative">
+                  <Building2 className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={bizName}
+                    onChange={(e) => setBizName(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 focus:bg-white border border-[#c5c6cd] rounded-xl focus:border-[#091426] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider font-mono">JENIS SEKTOR USAHA</label>
+                <div className="relative">
+                  <Briefcase className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <select
+                    value={bizType}
+                    onChange={(e) => setBizType(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 focus:bg-white border border-[#c5c6cd] rounded-xl focus:border-[#091426] focus:outline-none cursor-pointer"
+                  >
+                    <option value="Ritel & Perdagangan">Ritel &amp; Perdagangan mandiri</option>
+                    <option value="Jasa Profesional">Jasa Profesional / Konsultan</option>
+                    <option value="Manufaktur">Manufaktur &amp; Kerajinan</option>
+                    <option value="Teknologi">Teknologi &amp; Agensi Digital</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider font-mono">ALAMAT LEGAL BISNIS</label>
+              <div className="relative">
+                <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                <textarea
+                  value={bizAddress}
+                  onChange={(e) => setBizAddress(e.target.value)}
+                  rows={3}
+                  className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 focus:bg-white border border-[#c5c6cd] rounded-xl focus:border-[#091426] focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider font-mono">NOMOR TELEPON AKTIF</label>
+              <div className="relative">
+                <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={bizPhone}
+                  onChange={(e) => setBizPhone(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 focus:bg-white border border-[#c5c6cd] rounded-xl focus:border-[#091426] focus:outline-none"
+                />
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* Right Column: Account & Security (Span 4) */}
+        <div className="col-span-12 lg:col-span-4 space-y-6">
+          {/* User Biography Account Info Card */}
+          <section className="bg-white border border-[#c5c6cd] rounded-2xl p-6 space-y-4">
+            <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
+              <div className="p-2 bg-[#e5eeff] text-[#091426] rounded-xl">
+                <User className="w-4 h-4 shrink-0" />
+              </div>
+              <h4 className="font-bold text-xs text-[#0b1c30]">Profil Admin Utama</h4>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase font-mono">NAMA LENGKAP</label>
+                <input
+                  type="text"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  className="w-full px-3 py-1.5 text-xs bg-slate-50 focus:bg-white border border-[#c5c6cd] rounded-xl focus:outline-none focus:border-[#091426]"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase font-mono">EMAIL AKTIF PERUSAHAAN</label>
+                <input
+                  type="email"
+                  value={userEmail}
+                  onChange={(e) => setUserEmail(e.target.value)}
+                  className="w-full px-3 py-1.5 text-xs bg-slate-50 focus:bg-white border border-[#c5c6cd] rounded-xl focus:outline-none focus:border-[#091426]"
+                />
+              </div>
+
+              <div className="pt-2">
+                <button 
+                  type="button"
+                  onClick={() => onToast('Tautan pengubah sandi aman dikirim ke email Anda.', 'success')}
+                  className="w-full py-2.5 border border-[#c5c6cd] hover:bg-slate-50 text-xs font-bold text-slate-600 rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                >
+                  <Fingerprint className="w-3.5 h-3.5" />
+                  <span>Ubah Sandi Keamanan</span>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          {/* Preferences Settings Checkboxes Toggle */}
+          <section className="bg-white border border-[#c5c6cd] rounded-2xl p-6 space-y-4">
+            <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
+              <div className="p-2 bg-[#e5eeff] text-[#091426] rounded-xl">
+                <Bell className="w-4 h-4 shrink-0" />
+              </div>
+              <h4 className="font-bold text-xs text-[#0b1c30]">Preferensi Laporan</h4>
+            </div>
+
+            <div className="space-y-4">
+              {/* Toggle Notifikasi Email */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-xs text-[#0b1c30]">Notifikasi Email</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Info transaksi masuk / keluar</p>
+                </div>
+                <label className="relative inline-block w-10 h-5 cursor-pointer">
+                  <input 
+                    type="checkbox"
+                    checked={hasEmailNotif}
+                    onChange={(e) => setHasEmailNotif(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-full h-full bg-[#c5c6cd] rounded-full peer-checked:bg-[#006c49] transition-colors duration-200">
+                    <div className="w-3.5 h-3.5 bg-white rounded-full absolute left-0.5 top-0.5 transition-transform duration-200 peer-checked:translate-x-5" />
+                  </div>
+                </label>
+              </div>
+
+              {/* Toggle Laporan Mingguan */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-xs text-[#0b1c30]">Laporan Mingguan</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Arsip PDF otomatis tiap Senin</p>
+                </div>
+                <label className="relative inline-block w-10 h-5 cursor-pointer">
+                  <input 
+                    type="checkbox"
+                    checked={hasWeeklyReport}
+                    onChange={(e) => setHasWeeklyReport(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-full h-full bg-[#c5c6cd] rounded-full peer-checked:bg-[#006c49] transition-colors duration-200">
+                    <div className="w-3.5 h-3.5 bg-white rounded-full absolute left-0.5 top-0.5 transition-transform duration-200 peer-checked:translate-x-5" />
+                  </div>
+                </label>
+              </div>
+
+              {/* Toggle 2FA Verification */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-xs text-[#0b1c30]">Verifikasi 2FA</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Gunakan enkripsi autentikasi</p>
+                </div>
+                <label className="relative inline-block w-10 h-5 cursor-pointer">
+                  <input 
+                    type="checkbox"
+                    checked={hasTwoFactor}
+                    onChange={(e) => setHasTwoFactor(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-full h-full bg-[#c5c6cd] rounded-full peer-checked:bg-[#006c49] transition-colors duration-200">
+                    <div className="w-3.5 h-3.5 bg-white rounded-full absolute left-0.5 top-0.5 transition-transform duration-200 peer-checked:translate-x-5" />
+                  </div>
+                </label>
+              </div>
+            </div>
+          </section>
+        </div>
+
+      </div>
+
+      {/* Footer Interactive Actions Tracker */}
+      <footer className="p-4 bg-[#f8f9ff] border border-[#c5c6cd] rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p className="text-xs text-slate-500 leading-relaxed font-sans text-center sm:text-left">
+          Terakhir diatur oleh Anda pada <span className="font-semibold">Budi Santoso (Admin Bisnis)</span>.
+        </p>
+        <div className="flex gap-3 w-full sm:w-auto">
+          <button
+            onClick={handleReset}
+            className="flex-1 sm:flex-none px-6 py-2.5 border border-[#c5c6cd] hover:bg-slate-50 text-xs font-bold text-[#45474c] rounded-xl transition-all cursor-pointer"
+          >
+            Batalkan
+          </button>
+          <button
+            onClick={handleSaveAll}
+            disabled={isSaving}
+            className="flex-1 sm:flex-none px-6 py-2.5 bg-[#091426] hover:bg-slate-800 text-[#6cf8bb] font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 disabled:opacity-50 cursor-pointer"
+          >
+            {isSaving ? (
+              <>
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                <span>Menyimpan...</span>
+              </>
+            ) : (
+              <>
+                <CheckCircle className="w-3.5 h-3.5" />
+                <span>Simpan Perubahan</span>
+              </>
+            )}
+          </button>
+        </div>
+      </footer>
+
+    </div>
+  );
+}
