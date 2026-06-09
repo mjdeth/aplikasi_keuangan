@@ -4,14 +4,15 @@
  */
 
 import React, { useState, MouseEvent } from 'react';
-import { 
-  Wallet, 
-  TrendingUp, 
-  ArrowDownLeft, 
-  ArrowUpRight, 
-  Filter, 
-  FileSpreadsheet, 
-  MoreVertical, 
+import * as XLSX from 'xlsx';
+import {
+  Wallet,
+  TrendingUp,
+  ArrowDownLeft,
+  ArrowUpRight,
+  Filter,
+  FileSpreadsheet,
+  MoreVertical,
   CheckCircle,
   Clock,
   Trash2,
@@ -19,7 +20,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Plus,
-  AlertCircle
+  AlertCircle,
+  Info
 } from 'lucide-react';
 import { Transaction } from '../types';
 import { CATEGORIES } from '../data/initialData';
@@ -47,24 +49,11 @@ export default function DashboardView({
   activeFilterType = 'all',
   onToast
 }: DashboardViewProps) {
-  
+
   const [currentPage, setCurrentPage] = useState(1);
   const [activeMenuTxId, setActiveMenuTxId] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const itemsPerPage = 5;
-
-  // Real-time calculations
-  const baselineBalance = 45230000; // Original balance representation baseline
-  const computedIncome = transactions
-    .filter(tx => tx.type === 'income')
-    .reduce((sum, tx) => sum + tx.amount, 0);
-
-  const computedExpense = transactions
-    .filter(tx => tx.type === 'expense')
-    .reduce((sum, tx) => sum + tx.amount, 0);
-
-  // Calibrate final balance metrics based on standard dynamic operations
-  const finalBalance = baselineBalance + computedIncome - computedExpense;
 
   // Filter Logic: Category + Types + Search Queries
   const filteredTransactions = transactions.filter(tx => {
@@ -109,10 +98,36 @@ export default function DashboardView({
   const handleExportExcel = () => {
     setIsExporting(true);
     onToast('Menyiapkan berkas excel spreadsheet finansial...', 'success');
-    setTimeout(() => {
-      setIsExporting(false);
+
+    try {
+      const dataToExport = filteredTransactions.map((tx) => ({
+        'Tanggal': tx.date,
+        'ID Transaksi': tx.id,
+        'Tipe': tx.type === 'income' ? 'Pemasukan' : 'Pengeluaran',
+        'Kategori': tx.category,
+        'Nominal (Rp)': tx.amount,
+        'Keterangan': tx.note || '-',
+        'Status': tx.status === 'completed' ? 'Selesai' : 'Pending'
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+      const workbook = XLSX.utils.book_new();
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Buku Besar");
+
+      const today = new Date().toISOString().split('T')[0]; // Hasil: YYYY-MM-DD
+      const fileName = `Laporan_Keuangan_EquiCount_${today}.xlsx`;
+
+      XLSX.writeFile(workbook, fileName);
+
       onToast('Unduhan Berhasil! Laporan Ledger diekspor ke Excel.', 'success');
-    }, 1500);
+    } catch (error) {
+      console.error("Gagal mengekspor data:", error);
+      onToast('Terjadi kesalahan saat mengekspor data.', 'error');
+    } finally {
+      // Matikan status loading terlepas dari berhasil atau gagal
+      setIsExporting(false);
+    }
   };
 
   const handleActionMenuToggle = (e: MouseEvent, txId: string) => {
@@ -123,13 +138,22 @@ export default function DashboardView({
       setActiveMenuTxId(txId);
     }
   };
+  const computedIncome = transactions
+    .filter(t => t.type === 'income')
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  const computedExpense = transactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  const finalBalance = computedIncome - computedExpense;
 
   return (
     <div className="space-y-6 select-none animate-in fade-in duration-200">
-      
+
       {/* Metric Cards Grid Panel */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
+
         {/* Metric 1: Current Balance (Saldo Saat Ini) */}
         <div className="bg-white p-6 rounded-2xl border border-[#c5c6cd] shadow-sm flex flex-col justify-between transition-transform duration-300 hover:-translate-y-1">
           <div className="flex justify-between items-start">
@@ -143,9 +167,9 @@ export default function DashboardView({
               <Wallet className="w-5 h-5" />
             </div>
           </div>
-          <div className="mt-4 flex items-center gap-1.5 text-[#006c49] font-bold text-xs">
-            <TrendingUp className="w-4 h-4" />
-            <span>+12.5% dari bulan lalu</span>
+          <div className="mt-4 flex items-center gap-1.5 text-slate-500 text-xs font-medium">
+            <Info className="w-4 h-4" />
+            <span>Akumulasi dari seluruh transaksi valid</span>
           </div>
         </div>
 
@@ -155,7 +179,7 @@ export default function DashboardView({
             <div>
               <p className="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider">TOTAL PEMASUKAN</p>
               <h3 className="text-xl sm:text-2xl font-black text-[#006c49] mt-1 font-mono">
-                {formatIDR(128500000 + computedIncome)}
+                {formatIDR(computedIncome)}
               </h3>
             </div>
             <div className="p-3 bg-emerald-55 bg-[#6cf8bb]/20 text-[#006c49] rounded-xl shrink-0">
@@ -163,7 +187,7 @@ export default function DashboardView({
             </div>
           </div>
           <div className="mt-4 text-xs text-slate-500 font-medium">
-            <span>Total pendapatan terkonsolidasi kuartal ini</span>
+            <span>Total pendapatan tercatat di database</span>
           </div>
         </div>
 
@@ -173,7 +197,7 @@ export default function DashboardView({
             <div>
               <p className="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider">TOTAL PENGELUARAN</p>
               <h3 className="text-xl sm:text-2xl font-black text-[#ba1a1a] mt-1 font-mono">
-                {formatIDR(83270000 + computedExpense)}
+                {formatIDR(computedExpense)}
               </h3>
             </div>
             <div className="p-3 bg-red-50 text-[#ba1a1a] rounded-xl shrink-0">
@@ -181,7 +205,7 @@ export default function DashboardView({
             </div>
           </div>
           <div className="mt-4 text-xs text-slate-500 font-medium">
-            <span>Sekitar 72% dari pagu anggaran tahunan terpakai</span>
+            <span>Total pengeluaran tercatat di database</span>
           </div>
         </div>
 
@@ -189,11 +213,11 @@ export default function DashboardView({
 
       {/* Transactions Data Table Grid Section */}
       <section className="bg-white rounded-2xl border border-[#c5c6cd] shadow-xs overflow-hidden">
-        
+
         {/* Table actions bar header */}
         <div className="px-6 py-4 border-b border-[#c5c6cd] bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4">
           <h4 className="font-bold text-sm text-[#091426] tracking-tight">Daftar Log Transaksi Terkini</h4>
-          
+
           <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
             {/* Category Dropdown categoryFilter Selector */}
             <div className="relative flex-grow sm:flex-grow-0">
@@ -240,8 +264,8 @@ export default function DashboardView({
             <tbody className="divide-y divide-[#c5c6cd] text-xs">
               {paginatedTransactions.length > 0 ? (
                 paginatedTransactions.map((tx) => (
-                  <tr 
-                    key={tx.id} 
+                  <tr
+                    key={tx.id}
                     className="hover:bg-[#eff4ff]/40 transition-colors group relative"
                   >
                     {/* Timestamp */}
@@ -251,11 +275,10 @@ export default function DashboardView({
 
                     {/* Badge Category */}
                     <td className="px-6 py-4">
-                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider uppercase ${
-                        tx.type === 'income' 
-                          ? 'bg-[#6cf8bb]/20 text-[#00714d]' 
-                          : 'bg-slate-100 text-[#45474c]'
-                      }`}>
+                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider uppercase ${tx.type === 'income'
+                        ? 'bg-[#6cf8bb]/20 text-[#00714d]'
+                        : 'bg-slate-100 text-[#45474c]'
+                        }`}>
                         {tx.category}
                       </span>
                     </td>
@@ -266,9 +289,8 @@ export default function DashboardView({
                     </td>
 
                     {/* Value colored accordingly */}
-                    <td className={`px-6 py-4 font-mono font-bold text-right text-xs ${
-                      tx.type === 'income' ? 'text-[#006c49]' : 'text-[#ba1a1a]'
-                    }`}>
+                    <td className={`px-6 py-4 font-mono font-bold text-right text-xs ${tx.type === 'income' ? 'text-[#006c49]' : 'text-[#ba1a1a]'
+                      }`}>
                       {tx.type === 'income' ? '+' : '-'} {formatIDR(tx.amount)}
                     </td>
 
@@ -291,7 +313,7 @@ export default function DashboardView({
 
                     {/* Quick action modifiers */}
                     <td className="px-6 py-4 text-right relative">
-                      <button 
+                      <button
                         onClick={(e) => handleActionMenuToggle(e, tx.id)}
                         className="p-1 text-slate-400 hover:text-[#0b1c30] rounded-lg hover:bg-[#eff4ff] transition-colors cursor-pointer"
                         title="Modify entry"
@@ -357,16 +379,15 @@ export default function DashboardView({
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            
+
             {Array.from({ length: totalPages }, (_, idx) => (
               <button
                 key={idx + 1}
                 onClick={() => setCurrentPage(idx + 1)}
-                className={`px-3 py-1 text-xs font-bold rounded-lg transition-colors cursor-pointer ${
-                  currentPage === idx + 1
-                    ? 'bg-[#091426] text-white'
-                    : 'border border-[#c5c6cd] text-slate-600 hover:bg-slate-100'
-                }`}
+                className={`px-3 py-1 text-xs font-bold rounded-lg transition-colors cursor-pointer ${currentPage === idx + 1
+                  ? 'bg-[#091426] text-white'
+                  : 'border border-[#c5c6cd] text-slate-600 hover:bg-slate-100'
+                  }`}
               >
                 {idx + 1}
               </button>

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Menu,
   Search,
@@ -13,7 +13,8 @@ import {
   User,
   Settings,
   LogOut,
-  Sparkles
+  Sparkles,
+  CheckCircle2 // Tambahan icon baru
 } from 'lucide-react';
 import { UserProfile, ActiveTab } from '../types';
 
@@ -26,6 +27,14 @@ interface HeaderProps {
   isAuthenticated: boolean;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+}
+
+// Tambahkan interface untuk struktur Notifikasi
+interface AppNotification {
+  id: number;
+  text: string;
+  isNew: boolean;
+  timestamp: string;
 }
 
 export default function Header({
@@ -41,12 +50,27 @@ export default function Header({
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
-  // Notifications Mock
-  const mockNotifications = [
-    { id: 1, text: "Laporan bulanan Mei telah siap diekspor.", isNew: true },
-    { id: 2, text: "Gaji Bulanan Pemasaran diset menjadi 'Pending'.", isNew: false },
-    { id: 3, text: "Selamat bergabung di EquiCount SME!", isNew: false }
-  ];
+  // 1. Ubah Mock Data menjadi State agar dinamis
+  const [notifications, setNotifications] = useState<AppNotification[]>([
+    { id: 1, text: "Laporan bulanan Mei telah siap diekspor.", isNew: true, timestamp: "10 menit yang lalu" },
+    { id: 2, text: "Gaji Bulanan Pemasaran diset menjadi 'Pending'.", isNew: true, timestamp: "1 jam yang lalu" },
+    { id: 3, text: "Selamat bergabung di EquiCount SME!", isNew: false, timestamp: "2 hari yang lalu" }
+  ]);
+
+  // Simulasi fetch dari database (Opsional: Aktifkan jika API Backend sudah siap)
+  /*
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetch('/api/notifications')
+        .then(res => res.json())
+        .then(data => setNotifications(data))
+        .catch(err => console.error(err));
+    }
+  }, [isAuthenticated]);
+  */
+
+  // 2. Kalkulasi notifikasi yang belum dibaca
+  const unreadCount = notifications.filter(n => n.isNew).length;
 
   const getPageTitle = (tab: ActiveTab) => {
     switch (tab) {
@@ -55,8 +79,8 @@ export default function Header({
       case 'expenses': return 'Arus Kas Keluar (Pengeluaran)';
       case 'reports': return 'Laporan Keuangan & Laba Rugi';
       case 'settings': return 'Pengaturan Profil & Bisnis';
+      case 'help': return "Pusat Bantuan";
       case 'auth': return 'Autentikasi Akun';
-      case 'help': return "Pusat Bantuan"
       default: return 'EquiCount SME';
     }
   };
@@ -66,9 +90,23 @@ export default function Header({
     setProfileDropdownOpen(false);
   };
 
+  // 3. Fungsi untuk menandai semua notifikasi sudah dibaca
+  const handleMarkAllAsRead = () => {
+    setNotifications(prev => prev.map(notif => ({ ...notif, isNew: false })));
+    // TODO: Kirim request ke backend: fetch('/api/notifications/read-all', { method: 'PUT' })
+  };
+
+  // 4. Fungsi untuk menandai satu notifikasi saat diklik
+  const handleNotificationClick = (id: number) => {
+    setNotifications(prev =>
+      prev.map(notif => (notif.id === id ? { ...notif, isNew: false } : notif))
+    );
+    // TODO: Kirim request ke backend: fetch(`/api/notifications/${id}/read`, { method: 'PUT' })
+  };
+
   return (
     <header
-      className="sticky top-0 right-0 w-full h-16 bg-white border-b border-[#c5c6cd] flex items-center justify-between px-6 z-40 select-none shadow-xs"
+      className="sticky top-0 right-0 w-full h-[46px] bg-white border-b border-[#c5c6cd] flex items-center justify-between px-6 z-40 select-none shadow-xs"
       id="application-header-container"
     >
       <div className="flex items-center gap-4 flex-1">
@@ -105,10 +143,10 @@ export default function Header({
         {isAuthenticated ? (
           <>
             {/* Quick stats on screen */}
-            <div className="hidden lg:flex items-center gap-2 px-3 py-1 bg-[#6cf8bb]/15 border border-[#6cf8bb]/30 rounded-full text-[11px] font-bold text-[#006c49]">
+            {/* <div className="hidden lg:flex items-center gap-2 px-3 py-1 bg-[#6cf8bb]/15 border border-[#6cf8bb]/30 rounded-full text-[11px] font-bold text-[#006c49]">
               <Sparkles className="w-3.5 h-3.5" />
               <span>Premium Admin</span>
-            </div>
+            </div> */}
 
             {/* Notification button dropdown */}
             <div className="relative">
@@ -121,24 +159,59 @@ export default function Header({
                 title="Notifications"
               >
                 <Bell className="w-5 h-5 shrink-0" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#ba1a1a] rounded-full border-2 border-white"></span>
+
+                {/* Indikator Merah Dinamis Berdasarkan unreadCount */}
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-[#ba1a1a] rounded-full border-2 border-white flex items-center justify-center text-[8px] font-black text-white px-0.5">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </button>
 
               {notificationsOpen && (
                 <div className="absolute right-0 mt-2 w-80 bg-white border border-[#c5c6cd] rounded-xl shadow-lg py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                   <div className="px-4 py-2 border-b border-[#c5c6cd] flex justify-between items-center bg-slate-50">
-                    <span className="font-semibold text-xs text-[#0b1c30]">Notifikasi Terbaru</span>
-                    <span className="text-[10px] text-[#006c49] font-bold cursor-pointer hover:underline">Tandai Baca</span>
+                    <span className="font-semibold text-xs text-[#0b1c30]">Notifikasi ({unreadCount})</span>
+
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={handleMarkAllAsRead}
+                        className="text-[10px] text-[#006c49] font-bold cursor-pointer hover:underline flex items-center gap-1"
+                      >
+                        <CheckCircle2 className="w-3 h-3" />
+                        Tandai Semua Dibaca
+                      </button>
+                    )}
                   </div>
-                  <div className="divide-y divide-slate-100 max-h-60 overflow-y-auto">
-                    {mockNotifications.map((notif) => (
-                      <div key={notif.id} className="p-3 text-xs leading-relaxed hover:bg-[#eff4ff] transition-colors cursor-pointer">
-                        <p className={notif.isNew ? 'font-semibold text-slate-800' : 'text-slate-600'}>
-                          {notif.text}
-                        </p>
-                        <span className="text-[9px] text-slate-400 mt-1 block">1 jam yang lalu</span>
+
+                  <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto">
+                    {notifications.length > 0 ? (
+                      notifications.map((notif) => (
+                        <div
+                          key={notif.id}
+                          onClick={() => handleNotificationClick(notif.id)}
+                          className={`p-3 text-xs leading-relaxed transition-colors cursor-pointer relative
+                            ${notif.isNew ? 'bg-[#eff4ff]/50 hover:bg-[#eff4ff]' : 'hover:bg-slate-50'}
+                          `}
+                        >
+                          {/* Titik indikator pesan baru */}
+                          {notif.isNew && (
+                            <span className="absolute left-1.5 top-4 w-1.5 h-1.5 bg-[#006c49] rounded-full"></span>
+                          )}
+
+                          <p className={`pl-2 ${notif.isNew ? 'font-semibold text-[#091426]' : 'text-slate-600'}`}>
+                            {notif.text}
+                          </p>
+                          <span className="pl-2 text-[9px] text-slate-400 mt-1 block font-mono">
+                            {notif.timestamp}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-6 text-center text-xs text-slate-400">
+                        Tidak ada notifikasi saat ini.
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               )}
@@ -227,7 +300,6 @@ export default function Header({
             <button
               onClick={() => {
                 setActiveTab('auth');
-                // Auto switch register triggers can be stimulated.
               }}
               className="text-xs font-semibold bg-[#091426] hover:bg-slate-800 text-white px-4 py-2 rounded-xl transition-all shadow-sm"
             >

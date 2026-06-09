@@ -4,14 +4,14 @@
  */
 
 import { motion } from 'motion/react';
-import { 
-  Sparkles, 
-  ArrowRight, 
-  TrendingUp, 
-  Download, 
-  FileSpreadsheet, 
-  FileText, 
-  Clock, 
+import {
+  Sparkles,
+  ArrowRight,
+  TrendingUp,
+  Download,
+  FileSpreadsheet,
+  FileText,
+  Clock,
   Wallet,
   CheckCircle,
   Activity
@@ -34,7 +34,7 @@ export default function LandingPage({ onJoinDemo, onGoToAuth }: LandingPageProps
 
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
           {/* Left Text Column */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -75,36 +75,25 @@ export default function LandingPage({ onJoinDemo, onGoToAuth }: LandingPageProps
                 Mulai Daftar Gratis
               </motion.button>
             </div>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-6 text-xs text-slate-600">
-              <div className="flex -space-x-2.5">
-                <img className="w-9 h-9 rounded-full border-2 border-white object-cover" alt="User" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUvBBZAF323y_oPPapoXU48d7gWo0bnfX-bcyOw64a35vYjeLq5Pnog321IakzYhCP_nWAwnAW3x-9Jb1zL0hxSXQex_bTVQyHyeOEzW1bFDyVVsXtY8-M_NjHmEDMdLlqzbeENgwH_s0cVVt-rYCZ9a_KvoSXgeGx0uexnncD6ws38iSbAoFUnLDMNVT2Ic4ZB2PNBlF2AcFXYSIdNFU0hiSg2trmSqcT9Ft-o1bHm1d5FjXiszfCF06C6dWLd5gD_VdUJB9mwk4B" />
-                <img className="w-9 h-9 rounded-full border-2 border-white object-cover" alt="User" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDekBjpdSKOBUw3uLjDZ_BkFuz1G1lKnvXAXnovrIfSKBkKBF4UAuzj6xpfUH0-WhTa9Z5cqq3SUlIACRBhxtB5OVpPwJRCqedAY3v4ReecCdDIZBlCyEDQrPRm6EN_vxMq0UDn29jDu08he7TrUME8rz_dS2ORk6PVGjbD51GYvL3xaCiPQc0_Du95dMHdD8NSpv6oksM_OjsRUYJdi53gYadfL6kH-BNQvvLbkObp3SS6hUsh1nBgOJWsDe8gfKPviPqTTLGu63Q" />
-                <img className="w-9 h-9 rounded-full border-2 border-white object-cover" alt="User" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD27RYpDnN1wURx0FUoK3_AEG6vlitrAELUbbZV2ZqAHRj5Vwb2UPDPJkeuCGt2R1dt6NgTikRr3Sre1DCtgqfzzifFKcRXih1s5-gmvq4D3JCuMwUqwDflU-dB1kYUfxcOE3ozxgHpvRsQ8WACvQNRXHA2gNxe5vmoau7iuA8X86xYAayoiJ48TGFEFrCrCccx5gotndrY9VDvRZIJMYcsHEcp9rmAq9hjbF8PL1zogdiBTr-qO59j9aXFGaAntLWcfuT341gRJeAi" />
-              </div>
-              <p className="font-medium text-center sm:text-left leading-relaxed">
-                Bergabung dengan <span className="font-extrabold text-[#091426] underline decoration-[#6cf8bb] decoration-2">2.400+ UMKM mandiri</span> di seluruh wilayah Indonesia
-              </p>
-            </div>
           </motion.div>
 
           {/* Right Showcase Mockup Screen Column */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.95, rotate: 1 }}
             animate={{ opacity: 1, scale: 1, rotate: 0 }}
             transition={{ duration: 0.8, delay: 0.1 }}
             className="flex-1 relative w-full"
           >
             <div className="absolute -top-10 -right-10 w-44 h-44 bg-[#6cf8bb]/15 blur-2xl rounded-full pointer-events-none" />
-            
+
             {/* The beautiful template mockup card */}
             <div className="relative p-3 bg-white/70 backdrop-blur-md rounded-[24px] border border-slate-200 shadow-2xl overflow-hidden transition-all duration-500 hover:rotate-1">
-              <img 
-                className="rounded-2xl shadow-inner w-full h-auto object-cover border border-slate-100" 
+              <img
+                className="rounded-2xl shadow-inner w-full h-auto object-cover border border-slate-100"
                 alt="EquiCount Dashboard Interface on High-end Laptop Screen"
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlgOveufStjWsQ0R6CfCrtya9uGvmJ0Ab6WeqveRF98tsT3BgQMW11jJA2XHqU1MokoX94lFmy0_Qaz7ZcOrbN7fhaMg2uU9OzF32aBTH7VM6dpPZMXqFaZg_bHRbmirFxFjN7d3TqmKiwnJGYdwBlSmN665oiKvqi-N7P3aApG0WYFD_cM6cT4fwKxnAkjANTXCc1dQQl0Lyn11SZFUZ_zBBURT2cKmPiub1WnStBxFWP1M8tsADd0Zy9q9Xnv9B3KT21Bt0t3zJ8"
               />
-              
+
               {/* Overlapping badge */}
               <div className="absolute bottom-6 left-6 right-6 bg-[#091426]/95 backdrop-blur-md p-4 rounded-xl text-white border border-slate-700/50 hidden sm:flex items-center justify-between">
                 <div>
@@ -134,12 +123,12 @@ export default function LandingPage({ onJoinDemo, onGoToAuth }: LandingPageProps
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[250px]" id="landing-bento-grid">
-            
+
             {/* Bento Card 1: Pemasukan & Pengeluaran (Span 8) */}
-            <motion.div 
+            <motion.div
               whileHover={{ border: '1px solid #091426' }}
               className="md:col-span-8 p-6 sm:p-8 bg-[#f8f9ff] border border-slate-200 rounded-2xl flex flex-col justify-between hover:shadow-lg transition-all cursor-pointer group"
-              onClick={onJoinDemo}
+              // onClick={onJoinDemo}
               id="landing-bento-card-1"
             >
               <div className="flex justify-between items-start">
@@ -159,10 +148,10 @@ export default function LandingPage({ onJoinDemo, onGoToAuth }: LandingPageProps
             </motion.div>
 
             {/* Bento Card 2: Laporan Otomatis (Span 4) */}
-            <motion.div 
+            <motion.div
               whileHover={{ scale: 1.01 }}
               className="md:col-span-4 p-6 sm:p-8 bg-[#091426] text-white rounded-2xl flex flex-col justify-between hover:bg-slate-950 transition-colors cursor-pointer group"
-              onClick={onJoinDemo}
+              // onClick={onJoinDemo}
               id="landing-bento-card-2"
             >
               <div className="p-3 bg-[#1e293b] text-[#6cf8bb] rounded-xl w-fit group-hover:text-white transition-colors">
@@ -180,7 +169,7 @@ export default function LandingPage({ onJoinDemo, onGoToAuth }: LandingPageProps
             <motion.div
               whileHover={{ border: '2px dashed #006c49', backgroundColor: '#f0fff4' }}
               className="md:col-span-4 p-6 sm:p-8 bg-white border-2 border-dashed border-slate-200 rounded-2xl flex flex-col justify-between transition-all cursor-pointer group"
-              onClick={onJoinDemo}
+              // onClick={onJoinDemo}
               id="landing-bento-card-3"
             >
               <div className="p-3 bg-slate-50 text-[#006c49] border border-[#6cf8bb]/30 rounded-xl w-fit group-hover:bg-[#6cf8bb]/15 transition-colors">
@@ -195,7 +184,7 @@ export default function LandingPage({ onJoinDemo, onGoToAuth }: LandingPageProps
             </motion.div>
 
             {/* Bento Card 4: High density table with preview (Span 8) */}
-            <div 
+            <div
               className="md:col-span-8 p-6 sm:p-8 bg-[#eff4ff] border border-slate-200 rounded-2xl flex flex-col sm:flex-row gap-6 items-center overflow-hidden"
               id="landing-bento-card-4"
             >
@@ -275,7 +264,7 @@ export default function LandingPage({ onJoinDemo, onGoToAuth }: LandingPageProps
               onClick={onGoToAuth}
               className="w-full sm:w-auto bg-[#1e293b] border border-slate-700 hover:bg-[#2c3e50] text-white font-bold px-8 py-4 rounded-xl text-sm transition-colors cursor-pointer"
             >
-              Registrasi Ahli Baru
+              Registrasi Bisnis Baru
             </motion.button>
           </div>
         </div>

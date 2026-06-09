@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   Building2,
   User,
@@ -52,35 +52,60 @@ export default function SettingsView({
 
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSaveAll = () => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleSaveAll = async () => {
     setIsSaving(true);
-    setTimeout(() => {
-      // Save business profile
-      setBusinessProfile({
-        name: bizName,
-        type: bizType,
-        address: bizAddress,
-        phone: bizPhone,
-        logoUrl: bizLogo
+
+    try {
+      // Ambil JWT token dari localStorage (sesuaikan dengan cara Anda menyimpan token)
+      const token = localStorage.getItem('token');
+
+      const payload = {
+        businessProfile: {
+          name: bizName,
+          type: bizType,
+          address: bizAddress,
+          phone: bizPhone,
+          logoUrl: bizLogo
+        },
+        userProfile: {
+          fullName: userName,
+          email: userEmail
+        },
+        preferences: {
+          emailNotification: hasEmailNotif,
+          weeklyReport: hasWeeklyReport,
+          twoFactorAuth: hasTwoFactor
+        }
+      };
+
+      const response = await fetch(`${process.env.DATABASE_URL}/api/settings`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
       });
 
-      // Save user profile
-      setUserProfile({
-        ...userProfile,
-        fullName: userName,
-        email: userEmail
-      });
+      if (!response.ok) {
+        throw new Error('Gagal menyimpan data ke server');
+      }
 
-      // Save preferences
-      setPreferences({
-        emailNotification: hasEmailNotif,
-        weeklyReport: hasWeeklyReport,
-        twoFactorAuth: hasTwoFactor
-      });
+      // Jika sukses, update state global/parent via props
+      setBusinessProfile(payload.businessProfile);
+      setUserProfile({ ...userProfile, ...payload.userProfile });
+      setPreferences(payload.preferences);
 
+      onToast('Pengaturan Profil & Bisnis berhasil diperbarui ke Database!', 'success');
+
+    } catch (error: any) {
+      console.error('Error saving settings:', error);
+      onToast(error.message || 'Terjadi kesalahan jaringan.', 'error');
+    } finally {
       setIsSaving(false);
-      onToast('Pengaturan Profil & Bisnis berhasil diperbarui!', 'success');
-    }, 1200);
+    }
   };
 
   const handleReset = () => {
@@ -97,13 +122,17 @@ export default function SettingsView({
     onToast('Perubahan dibatalkan.', 'error');
   };
 
-  const handleLogoUpload = () => {
-    // Simulated upload of new logo
-    const urls = [
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuAPrQd6vZOE_-ZdY8GFjAv3y1pJSuTJZNH2z8-DhZHZ2AKmeJmDg-7I_I-qWiP8gO4OroPFvdWs-9ry1EXgCyBNUbEa8l58kpFbjYjsYA9aiuurJ5-nbfWVAt0U730MYSRmacbTmubftH2NijHDi6-7avP7k3ruux8qz9Ox60R_HGR-kfnT5_S9wkEzNwmPHrAW7Uf7T6019RHlHj9iVexay_V110jFHrCpv4bOPNsaax50BRtIUHjGX51zOGrneiwvcYafApgTfAxK'
-    ];
-    setBizLogo(urls[0]);
-    onToast('Logo bisnis berhasil disimulasikan.', 'success');
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      onToast('Ukuran file maksimal 2MB', 'error');
+      return;
+    }
+
+    // Simulasi upload atau logic FormData Anda di sini...
+    onToast(`File ${file.name} siap diunggah!`, 'success');
   };
 
   const handleLogoRemove = () => {
@@ -140,13 +169,26 @@ export default function SettingsView({
               <div className="text-center sm:text-left space-y-2">
                 <p className="font-bold text-xs text-[#0b1c30]">Logo Perusahaan</p>
                 <div className="flex flex-wrap justify-center sm:justify-start gap-2.5">
+                  {/* Tombol yang memicu klik pada input tersembunyi */}
                   <button
-                    onClick={handleLogoUpload}
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
                     className="px-4 py-2 bg-[#006c49] hover:bg-emerald-800 text-white text-xs font-bold rounded-lg transition-all cursor-pointer shadow-sm"
                   >
                     Ganti Logo
                   </button>
+
+                  {/* Input file yang disembunyikan */}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleLogoUpload}
+                    accept="image/png, image/jpeg"
+                    className="hidden"
+                  />
+
                   <button
+                    type="button"
                     onClick={handleLogoRemove}
                     className="px-4 py-2 border border-[#c5c6cd] text-[#45474c] hover:bg-slate-100 text-xs font-bold rounded-lg transition-colors cursor-pointer"
                   >

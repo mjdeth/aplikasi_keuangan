@@ -26,28 +26,36 @@ import TransactionModal from './components/TransactionModal';
 import HelpCenter from './components/HelpCenter';
 
 import {
-  INITIAL_TRANSACTIONS,
   INITIAL_BUSINESS_PROFILE,
-  INITIAL_USER_PROFILE,
   INITIAL_PREFERENCES
 } from './data/initialData';
 
 export default function App() {
-  // 1. Core Persistent States
+  // 1. Core Authentication State (Berbasis Token JWT)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    const saved = localStorage.getItem('equicount_auth');
-    return saved ? JSON.parse(saved) : true; // Default to true to allow immediate dashboard experience as mockup
+    return !!localStorage.getItem('token');
   });
 
   const [activeTab, setActiveTab] = useState<ActiveTab>(() => {
-    const savedAuth = localStorage.getItem('equicount_auth');
-    const parsedAuth = savedAuth ? JSON.parse(savedAuth) : true;
-    return parsedAuth ? 'dashboard' : 'landing';
+    return localStorage.getItem('token') ? 'dashboard' : 'landing';
   });
 
-  const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    const saved = localStorage.getItem('equicount_transactions');
-    return saved ? JSON.parse(saved) : INITIAL_TRANSACTIONS;
+  // 2. Data States
+  const [transactions, setTransactions] = useState<Transaction[]>([]); // Default kosong, akan diisi dari API
+
+  // Mengambil profil dari localStorage jika sudah login
+  const [userProfile, setUserProfile] = useState<UserProfile>(() => {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      const parsed = JSON.parse(savedUser);
+      return {
+        fullName: parsed.full_name || parsed.fullName,
+        email: parsed.email,
+        role: parsed.role,
+        avatarUrl: parsed.avatar_url || parsed.avatarUrl || 'https://lh3.googleusercontent.com/aida-public/AB6AXuBd6pRN3jnPuz6h0mwwyuNny1yRd1jz-Hxy9QWzMnyO91MDkBwrV7g6T5WzOaveaRS_dxv_RoliGhLlsbozUa87SXSq7a5nvJPwuMGYoHG-BIkK_gm-MWf7iNFGTVBixp_FDvSaQvPGbV9PMGJKe6a5EzlV7Hx4_DMVZlRzQtYMt86P2J9xJDdMO_IjRiYqqcNofjaXd1wfqsJs7AuJEEmvCVAlMbenCvJiff7iCeaBd-uZWKPib6qISk_X28ZFBxHxxImcKHtlIWcI'
+      };
+    }
+    return { fullName: 'Tamu', email: '', role: 'Pengunjung', avatarUrl: '' };
   });
 
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile>(() => {
@@ -55,26 +63,19 @@ export default function App() {
     return saved ? JSON.parse(saved) : INITIAL_BUSINESS_PROFILE;
   });
 
-  const [userProfile, setUserProfile] = useState<UserProfile>(() => {
-    const saved = localStorage.getItem('equicount_user');
-    return saved ? JSON.parse(saved) : INITIAL_USER_PROFILE;
-  });
-
   const [preferences, setPreferences] = useState<Preferences>(() => {
     const saved = localStorage.getItem('equicount_preferences');
     return saved ? JSON.parse(saved) : INITIAL_PREFERENCES;
   });
 
-  // 2. Auxiliary UI States
+  // 3. Auxiliary UI States
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isAddTxModalOpen, setIsAddTxModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
-  // Filtering & Search state query params (Shared by Header/Sidebar to filter list dynamically)
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('Semua Kategori');
 
-  // Toasts Alert states list
   interface Toast {
     id: number;
     message: string;
@@ -82,58 +83,121 @@ export default function App() {
   }
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  // 3. Auto-sync states to localStorage
-  useEffect(() => {
-    localStorage.setItem('equicount_auth', JSON.stringify(isAuthenticated));
-  }, [isAuthenticated]);
-
-  useEffect(() => {
-    localStorage.setItem('equicount_transactions', JSON.stringify(transactions));
-  }, [transactions]);
-
-  useEffect(() => {
-    localStorage.setItem('equicount_profile', JSON.stringify(businessProfile));
-  }, [businessProfile]);
-
-  useEffect(() => {
-    localStorage.setItem('equicount_user', JSON.stringify(userProfile));
-  }, [userProfile]);
-
-  useEffect(() => {
-    localStorage.setItem('equicount_preferences', JSON.stringify(preferences));
-  }, [preferences]);
-
-  // Utility toast dispatcher
   const dispatchToast = (message: string, status: 'success' | 'error' = 'success') => {
     const id = Date.now();
     setToasts(prev => [...prev, { id, message, status }]);
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, 3500);
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3500);
   };
 
-  // 4. Transaction operations logic
-  const handleSaveTransaction = (txData: Omit<Transaction, 'id'> & { id?: string }) => {
-    if (txData.id) {
-      // EDIT MODE
-      setTransactions(prev => prev.map(t => t.id === txData.id ? { ...t, ...txData } as Transaction : t));
-      dispatchToast('Koreksi log transaksi berhasil disimpan!', 'success');
+  // --- MENGAMBIL DATA TRANSAKSI DARI DATABASE CLOUD ---
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      const token = localStorage.getItem('token');
+      const userStr = localStorage.getItem('user');
+
+      if (!token || !userStr) return;
+      const user = JSON.parse(userStr);
+
+      try {
+        const response = await fetch(`http://localhost:5000/api/transactions/${user.id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          // Backend PostgreSQL mereturn string untuk DATE, kita pastikan mappingnya sesuai
+          const mappedData = data.map((tx: any) => ({
+            ...tx,
+            date: tx.date.split('T')[0] // Ambil bagian tanggal saja (YYYY-MM-DD)
+          }));
+          setTransactions(mappedData);
+        }
+      } catch (error) {
+        console.error("Gagal menarik data transaksi:", error);
+      }
+    };
+
+    if (isAuthenticated) {
+      fetchTransactions();
     } else {
-      // NEW MODE
-      const newTx: Transaction = {
-        ...txData,
-        id: `tx-${Date.now()}`
-      } as Transaction;
-      setTransactions(prev => [newTx, ...prev]);
-      dispatchToast('Catatan log transaksi berhasil ditambahkan ke jurnal!', 'success');
+      setTransactions([]); // Kosongkan transaksi jika logout
     }
-    setEditingTransaction(null);
+  }, [isAuthenticated]);
+
+  // --- CRUD OPERASIONAL API ---
+  const handleSaveTransaction = async (txData: Omit<Transaction, 'id'> & { id?: string }) => {
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+
+    if (!token || !userStr) {
+      dispatchToast('Akses ditolak. Silakan login kembali.', 'error');
+      return;
+    }
+    const user = JSON.parse(userStr);
+
+    try {
+      if (txData.id) {
+        // EDIT MODE (PUT)
+        const response = await fetch(`http://localhost:5000/api/transactions/${txData.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(txData)
+        });
+
+        if (response.ok) {
+          setTransactions(prev => prev.map(t => t.id === txData.id ? { ...t, ...txData } as Transaction : t));
+          dispatchToast('Koreksi log transaksi berhasil disimpan!', 'success');
+        } else {
+          dispatchToast('Gagal memperbarui transaksi di server.', 'error');
+        }
+      } else {
+        // NEW MODE (POST)
+        const payload = { ...txData, user_id: user.id };
+        const response = await fetch('http://localhost:5000/api/transactions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+          const newTx = await response.json();
+          setTransactions(prev => [newTx, ...prev]);
+          dispatchToast('Catatan log transaksi berhasil ditambahkan ke jurnal!', 'success');
+        } else {
+          dispatchToast('Gagal menyimpan transaksi ke server.', 'error');
+        }
+      }
+      setEditingTransaction(null);
+      setIsAddTxModalOpen(false); // Tutup modal setelah sukses
+    } catch (error) {
+      dispatchToast('Terjadi kesalahan pada server.', 'error');
+    }
   };
 
-  const handleDeleteTransaction = (id: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus catatan log transaksi ini dari pembukuan?')) {
-      setTransactions(prev => prev.filter(t => t.id !== id));
-      dispatchToast('Catatan log berhasil terhapus dari ledger.', 'success');
+  const handleDeleteTransaction = async (id: string) => {
+    if (!confirm('Apakah Anda yakin ingin menghapus catatan log transaksi ini dari pembukuan?')) return;
+
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch(`http://localhost:5000/api/transactions/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        setTransactions(prev => prev.filter(t => t.id !== id));
+        dispatchToast('Catatan log berhasil terhapus dari ledger.', 'success');
+      } else {
+        dispatchToast('Gagal menghapus data dari server.', 'error');
+      }
+    } catch (error) {
+      dispatchToast('Terjadi kesalahan pada server.', 'error');
     }
   };
 
@@ -142,8 +206,13 @@ export default function App() {
     setIsAddTxModalOpen(true);
   };
 
+  // --- LOGOUT LOGIC ---
   const handleLogout = () => {
     if (confirm('Selesaikan sesi pembukuan dan keluar ke landing page?')) {
+      // Hapus tiket masuk dari browser
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+
       setIsAuthenticated(false);
       setActiveTab('landing');
       dispatchToast('Sesi ditutup secara aman.', 'success');
@@ -170,9 +239,8 @@ export default function App() {
         return (
           <LandingPage
             onJoinDemo={() => {
-              setIsAuthenticated(true);
-              setActiveTab('dashboard');
-              dispatchToast('Selamat datang di Demo Mode EquiCount SME!', 'success');
+              setActiveTab('auth'); // Arahkan ke auth dulu, tidak langsung masuk
+              dispatchToast('Silakan masuk atau daftar terlebih dahulu!', 'success');
             }}
             onGoToAuth={handleGoToAuthRegister}
           />
@@ -317,15 +385,17 @@ export default function App() {
       )}
 
       {/* 2. Interactive Dialog Form Modal */}
-      <TransactionModal
-        isOpen={isAddTxModalOpen}
-        onClose={() => {
-          setIsAddTxModalOpen(false);
-          setEditingTransaction(null);
-        }}
-        onSave={handleSaveTransaction}
-        editingTransaction={editingTransaction}
-      />
+      {isAddTxModalOpen && (
+        <TransactionModal
+          isOpen={isAddTxModalOpen}
+          onClose={() => {
+            setIsAddTxModalOpen(false);
+            setEditingTransaction(null);
+          }}
+          onSave={handleSaveTransaction}
+          editingTransaction={editingTransaction}
+        />
+      )}
 
       {/* 3. Global Toasts Dispatch Notifications Container */}
       <div

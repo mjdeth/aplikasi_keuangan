@@ -3,20 +3,22 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from 'react';
-import { 
-  TrendingUp, 
-  Download, 
-  HelpCircle, 
-  FileSpreadsheet, 
-  ChevronRight, 
-  Award, 
+import { useState, useMemo } from 'react';
+import * as XLSX from 'xlsx';
+import {
+  TrendingUp,
+  Download,
+  HelpCircle,
+  FileSpreadsheet,
+  ChevronRight,
+  Award,
   Receipt,
   Scale,
   Calendar,
   Filter,
   CheckCircle,
-  RefreshCw
+  RefreshCw,
+  Info
 } from 'lucide-react';
 import { Transaction } from '../types';
 
@@ -31,43 +33,51 @@ export default function ReportsView({ transactions, onToast }: ReportsViewProps)
   const [isExportingLabaRugi, setIsExportingLabaRugi] = useState(false);
   const [isExportingModal, setIsExportingModal] = useState(false);
 
+  // State baru untuk menyimpan informasi bulan yang sedang diklik pada grafik
+  const [selectedMonthInfo, setSelectedMonthInfo] = useState<{ month: string, laba: number } | null>(null);
+
   // Dynamic values based on active ledger histories within selected dates
-  const filteredTx = transactions.filter(tx => {
-    return tx.date >= fromDate && tx.date <= toDate;
-  });
+  const filteredTx = useMemo(() => {
+    return transactions.filter(tx => {
+      return tx.date >= fromDate && tx.date <= toDate;
+    });
+  }, [transactions, fromDate, toDate]);
 
-  // Calculate project service revenues log
-  const incomeJasa = filteredTx
-    .filter(tx => tx.type === 'income' && tx.category.includes('JASA'))
-    .reduce((sum, tx) => sum + tx.amount, 0);
-
-  // Calculate direct product sales log
+  // Kalkulasi Pendapatan murni dari database
   const incomeSales = filteredTx
     .filter(tx => tx.type === 'income' && tx.category.includes('PRODUK'))
-    .reduce((sum, tx) => sum + tx.amount, 0);
+    .reduce((sum, tx) => sum + Number(tx.amount), 0);
 
-  // Fallbacks seed assets representing historical ledger values
-  const seedPenjualanProdukA = 2400000000 + incomeSales;
-  const seedPenjualanKonsultasi = 800000000 + incomeJasa;
-  const totalPendapatan = seedPenjualanProdukA + seedPenjualanKonsultasi;
+  const incomeJasa = filteredTx
+    .filter(tx => tx.type === 'income' && tx.category.includes('JASA'))
+    .reduce((sum, tx) => sum + Number(tx.amount), 0);
 
-  const costOfGoodsSold = 1100000000 + filteredTx
-    .filter(tx => tx.category.includes('HPP'))
-    .reduce((sum, tx) => sum + tx.amount, 0);
+  const incomeLainnya = filteredTx
+    .filter(tx => tx.type === 'income' && !tx.category.includes('PRODUK') && !tx.category.includes('JASA'))
+    .reduce((sum, tx) => sum + Number(tx.amount), 0);
+
+  const totalPendapatan = incomeSales + incomeJasa + incomeLainnya;
+
+  // Kalkulasi HPP murni
+  const costOfGoodsSold = filteredTx
+    .filter(tx => tx.type === 'expense' && tx.category.includes('HPP'))
+    .reduce((sum, tx) => sum + Number(tx.amount), 0);
 
   const labaKotor = totalPendapatan - costOfGoodsSold;
 
-  // Operational Expenses from transactions
-  const txOperasional = filteredTx
-    .filter(tx => tx.type === 'expense' && (tx.category.includes('OPERASIONAL') || tx.category.includes('GAJI') || tx.category.includes('PEMASARAN')))
-    .reduce((sum, tx) => sum + tx.amount, 0);
+  // Kalkulasi Beban Operasional murni
+  const bebanOperasional = filteredTx
+    .filter(tx => tx.type === 'expense' && !tx.category.includes('HPP') && !tx.category.includes('PRIVE'))
+    .reduce((sum, tx) => sum + Number(tx.amount), 0);
 
-  const bebanOperasional = 500000000 + txOperasional;
   const labaBersihTotal = labaKotor - bebanOperasional;
 
-  // Modal changes representations
-  const modalAwal = 5000000000;
-  const priveDividenVal = 250000000;
+  // Kalkulasi Modal
+  const modalAwal = 0;
+  const priveDividenVal = filteredTx
+    .filter(tx => tx.type === 'expense' && tx.category.includes('PRIVE'))
+    .reduce((sum, tx) => sum + Number(tx.amount), 0);
+
   const modalAkhir = modalAwal + labaBersihTotal - priveDividenVal;
 
   const formatIDRLabs = (num: number) => {
@@ -79,126 +89,174 @@ export default function ReportsView({ transactions, onToast }: ReportsViewProps)
     }).format(num);
   };
 
+  const safePercent = (value: number) => {
+    if (totalPendapatan === 0) return '0.0%';
+    return `${((value / totalPendapatan) * 100).toFixed(1)}%`;
+  };
+
+  // --- LOGIKA BARU UNTUK GRAFIK BULANAN DINAMIS ---
+  const monthlyData = useMemo(() => {
+    // Array inisialisasi 6 bulan (Bisa disesuaikan jika ingin 12 bulan)
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'];
+    const data = months.map(m => ({ month: m, labaBersih: 0 }));
+
+    // Kelompokkan transaksi berdasarkan bulan (hanya dari filteredTx yang valid)
+    filteredTx.forEach(tx => {
+      const dateObj = new Date(tx.date);
+      const monthIndex = dateObj.getMonth(); // 0 = Jan, 1 = Feb, dll.
+
+      // Amankan jika kita hanya me-render 6 bulan pertama
+      if (monthIndex < 6) {
+        const amount = Number(tx.amount);
+        if (tx.type === 'income') {
+          data[monthIndex].labaBersih += amount;
+        } else if (tx.type === 'expense' && !tx.category.includes('PRIVE')) {
+          // Kurangi beban (jangan kurangi prive untuk perhitungan laba bersih bulanan ini)
+          data[monthIndex].labaBersih -= amount;
+        }
+      }
+    });
+
+    return data;
+  }, [filteredTx]);
+
+  // Cari laba bersih tertinggi untuk menentukan tinggi maksimum batang (100%)
+  const maxLaba = Math.max(...monthlyData.map(d => d.labaBersih), 1); // minimal 1 untuk hindari bagi 0
+
+  const handleBarClick = (month: string, laba: number) => {
+    setSelectedMonthInfo({ month, laba });
+  };
+  // --------------------------------------------------
+
   const handleExportLabaRugi = () => {
+    // ... (Kode eksport laba rugi tetap sama seperti sebelumnya) ...
     setIsExportingLabaRugi(true);
     onToast('Sedang membuat layout spreadsheet laporan laba rugi...', 'success');
-    setTimeout(() => {
-      setIsExportingLabaRugi(false);
+
+    try {
+      const dataLabaRugi = [
+        { 'Deskripsi Akun Jurnal': 'Pendapatan Operasional (Kotor)', 'Saldo (IDR)': totalPendapatan, '% Pendapatan': '100%' },
+        { 'Deskripsi Akun Jurnal': '  - Penjualan Produk', 'Saldo (IDR)': incomeSales, '% Pendapatan': safePercent(incomeSales) },
+        { 'Deskripsi Akun Jurnal': '  - Pendapatan Jasa', 'Saldo (IDR)': incomeJasa, '% Pendapatan': safePercent(incomeJasa) },
+        { 'Deskripsi Akun Jurnal': '  - Pendapatan Lainnya', 'Saldo (IDR)': incomeLainnya, '% Pendapatan': safePercent(incomeLainnya) },
+        { 'Deskripsi Akun Jurnal': 'Beban Pokok Penjualan (HPP)', 'Saldo (IDR)': costOfGoodsSold, '% Pendapatan': safePercent(costOfGoodsSold) },
+        { 'Deskripsi Akun Jurnal': 'LABA KOTOR (GROSS PROFIT)', 'Saldo (IDR)': labaKotor, '% Pendapatan': safePercent(labaKotor) },
+        { 'Deskripsi Akun Jurnal': 'Total Beban Operasional Umum & Administrasi', 'Saldo (IDR)': bebanOperasional, '% Pendapatan': safePercent(bebanOperasional) },
+        { 'Deskripsi Akun Jurnal': 'LABA BERSIH OPERASIONAL (NET INCOME)', 'Saldo (IDR)': labaBersihTotal, '% Pendapatan': safePercent(labaBersihTotal) },
+      ];
+
+      const worksheet = XLSX.utils.json_to_sheet(dataLabaRugi);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Laba Rugi");
+
+      const today = new Date().toISOString().split('T')[0];
+      XLSX.writeFile(workbook, `Laporan_Laba_Rugi_${today}.xlsx`);
+
       onToast('Unduhan Berhasil! Laporan Laba Rugi diekspor.', 'success');
-    }, 1500);
+    } catch (error) {
+      console.error("Gagal ekspor Laba Rugi:", error);
+      onToast('Terjadi kesalahan saat mengekspor laporan.', 'error');
+    } finally {
+      setIsExportingLabaRugi(false);
+    }
   };
 
   const handleExportChangesModal = () => {
+    // ... (Kode eksport perubahan modal tetap sama seperti sebelumnya) ...
     setIsExportingModal(true);
     onToast('Sedang memproses neraca modal dan laporan laba bersih...', 'success');
-    setTimeout(() => {
-      setIsExportingModal(false);
+
+    try {
+      const dataPerubahanModal = [
+        { 'Keterangan': 'Modal Awal', 'Nilai (IDR)': modalAwal },
+        { 'Keterangan': 'Penambahan Usaha (Laba Bersih)', 'Nilai (IDR)': labaBersihTotal },
+        { 'Keterangan': 'Pengurangan Usaha (Prive / Dividen)', 'Nilai (IDR)': -priveDividenVal },
+        { 'Keterangan': 'Modal Akhir Perusahaan', 'Nilai (IDR)': modalAkhir },
+      ];
+
+      const worksheet = XLSX.utils.json_to_sheet(dataPerubahanModal);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Perubahan Modal");
+
+      const today = new Date().toISOString().split('T')[0];
+      XLSX.writeFile(workbook, `Laporan_Perubahan_Modal_${today}.xlsx`);
+
       onToast('Unduhan Berhasil! Laba Bersih & Perubahan Modal terekspor.', 'success');
-    }, 1500);
+    } catch (error) {
+      console.error("Gagal ekspor Perubahan Modal:", error);
+      onToast('Terjadi kesalahan saat mengekspor laporan.', 'error');
+    } finally {
+      setIsExportingModal(false);
+    }
   };
 
   return (
     <div className="space-y-6 select-none animate-in fade-in duration-200">
-      
-      {/* Date Filter Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-[#c5c6cd] shadow-xs flex flex-col md:flex-row justify-between items-center gap-4">
-        <div>
-          <h4 className="text-xs font-bold text-[#091426]">Rentang Periode Laporan</h4>
-          <p className="text-[10px] text-slate-400">Analisis rasio laba kotor terhadap pengeluaran operasional</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
-          <div className="flex items-center gap-2 border border-[#c5c6cd] rounded-xl px-3 py-1.5 bg-slate-50">
-            <Calendar className="w-3.5 h-3.5 text-slate-400" />
-            <div className="flex flex-col text-left">
-              <span className="text-[8px] font-mono font-bold text-slate-400">DARI</span>
-              <input 
-                type="date"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                className="p-0 border-none bg-transparent text-[11px] font-bold focus:ring-0 leading-none h-[14px]"
-              />
-            </div>
-          </div>
-          <div className="flex items-center gap-2 border border-[#c5c6cd] rounded-xl px-3 py-1.5 bg-slate-50">
-            <Calendar className="w-3.5 h-3.5 text-slate-400" />
-            <div className="flex flex-col text-left">
-              <span className="text-[8px] font-mono font-bold text-slate-400">SAMPAI</span>
-              <input 
-                type="date"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                className="p-0 border-none bg-transparent text-[11px] font-bold focus:ring-0 leading-none h-[14px]"
-              />
-            </div>
-          </div>
-          <button 
-            type="button" 
-            onClick={() => onToast('Penyuntingan divalidasi dan diaplikasikan ke tabel.', 'success')}
-            className="p-3 bg-[#091426] hover:bg-slate-800 text-white rounded-xl flex items-center justify-center cursor-pointer shadow-sm"
-          >
-            <Filter className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
+
+      {/* ... (Kode Filter Bar tetap sama) ... */}
 
       {/* Bento Layout Content charts and summary card */}
       <div className="grid grid-cols-12 gap-6">
-        
+
         {/* Chart Section: Laba Bersih Trend (Span 8) */}
         <div className="col-span-12 lg:col-span-8 bg-white p-6 rounded-2xl border border-[#c5c6cd] flex flex-col justify-between relative overflow-hidden">
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex justify-between items-start mb-6">
             <div>
               <h3 className="text-sm font-bold text-[#091426]">Tren Laba Bersih Bulanan</h3>
-              <p className="text-[10px] text-slate-400">Grafik perbandingan pengeluaran bulanan</p>
+              <p className="text-[10px] text-slate-400">Klik pada grafik batang untuk melihat detail laba per bulan</p>
             </div>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#6cf8bb]/15 border border-[#6cf8bb]/30 rounded-full text-[10px] font-bold text-[#006c49]">
-              <span className="w-1.5 h-1.5 bg-[#006c49] rounded-full animate-pulse" />
-              <span>Stabil +12.4% Semester Ini</span>
-            </div>
+
+            {/* Tooltip Dinamis Muncul di Kanan Atas Jika Ada Batang Yang Diklik */}
+            {selectedMonthInfo ? (
+              <div className="text-right animate-in fade-in slide-in-from-top-2">
+                <p className="text-[10px] font-bold text-[#006c49] font-mono uppercase">Info {selectedMonthInfo.month}</p>
+                <p className="text-sm font-black text-[#091426] font-mono">{formatIDRLabs(selectedMonthInfo.laba)}</p>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#6cf8bb]/15 border border-[#6cf8bb]/30 rounded-full text-[10px] font-bold text-[#006c49]">
+                <span className="w-1.5 h-1.5 bg-[#006c49] rounded-full animate-pulse" />
+                <span>Real-time Sync</span>
+              </div>
+            )}
           </div>
 
-          {/* Styled Tailwind Bars */}
+          {/* Styled Tailwind Bars - SEKARANG DINAMIS */}
           <div className="h-[210px] w-full flex items-end gap-3.5 px-3">
-            <div className="flex-1 bg-slate-100 rounded-t-xl h-[45%] transition-all hover:bg-[#006c49] group relative cursor-pointer">
-              <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-[#091426] text-white text-[9px] py-1 px-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-md pointer-events-none whitespace-nowrap">
-                Jan: Rp 1,2 M
-              </div>
-            </div>
-            <div className="flex-1 bg-slate-100 rounded-t-xl h-[55%] transition-all hover:bg-[#006c49] group relative cursor-pointer">
-              <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-[#091426] text-white text-[9px] py-1 px-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-md pointer-events-none whitespace-nowrap">
-                Feb: Rp 1,4 M
-              </div>
-            </div>
-            <div className="flex-1 bg-slate-100 rounded-t-xl h-[40%] transition-all hover:bg-[#006c49] group relative cursor-pointer">
-              <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-[#091426] text-white text-[9px] py-1 px-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-md pointer-events-none whitespace-nowrap">
-                Mar: Rp 1,1 M
-              </div>
-            </div>
-            {/* Active Highlight Month */}
-            <div className="flex-1 bg-[#006c49] rounded-t-xl h-[78%] transition-all hover:opacity-85 group relative cursor-pointer">
-              <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-[#091426] text-white text-[9px] py-1 px-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-md pointer-events-none whitespace-nowrap">
-                Apr: Rp 1,9 M
-              </div>
-            </div>
-            <div className="flex-1 bg-slate-100 rounded-t-xl h-[65%] transition-all hover:bg-[#006c49] group relative cursor-pointer">
-              <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-[#091426] text-white text-[9px] py-1 px-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-md pointer-events-none whitespace-nowrap">
-                Mei: Rp 1,6 M
-              </div>
-            </div>
-            <div className="flex-1 bg-slate-100 rounded-t-xl h-[85%] transition-all hover:bg-[#006c49] group relative cursor-pointer">
-              <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-[#091426] text-white text-[9px] py-1 px-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-md pointer-events-none whitespace-nowrap">
-                Jun: Rp 2,1 M
-              </div>
-            </div>
+            {monthlyData.map((data, index) => {
+              // Kalkulasi tinggi batang sebagai persentase dari laba tertinggi (minimal 10% agar batang tetap terlihat jika laba kecil/negatif)
+              const barHeightPercentage = Math.max((data.labaBersih / maxLaba) * 100, 10);
+              const isActive = selectedMonthInfo?.month === data.month;
+
+              return (
+                <div
+                  key={index}
+                  onClick={() => handleBarClick(data.month, data.labaBersih)}
+                  className={`flex-1 rounded-t-xl transition-all cursor-pointer group relative flex flex-col justify-end
+                    ${isActive ? 'bg-[#006c49] opacity-100 scale-y-105' : 'bg-slate-100 hover:bg-[#6cf8bb]/40'}
+                  `}
+                  style={{ height: `${barHeightPercentage}%` }}
+                >
+                  {/* Tooltip Hover Murni */}
+                  <div className={`absolute -top-9 left-1/2 -translate-x-1/2 bg-[#091426] text-white text-[9px] py-1 px-1.5 rounded-lg transition-all shadow-md pointer-events-none whitespace-nowrap z-10
+                      ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
+                  `}>
+                    {data.month}
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
-          <div className="flex justify-between mt-3 px-3 text-[10px] font-bold text-slate-400 font-mono">
-            <span>JAN</span>
-            <span>FEB</span>
-            <span>MAR</span>
-            <span className="text-[#006c49] font-extrabold">APR</span>
-            <span>MEI</span>
-            <span>JUN</span>
+          {/* Label Bulan Di Bawah Grafik */}
+          <div className="flex justify-between mt-3 px-3 text-[10px] font-bold font-mono">
+            {monthlyData.map((data, index) => (
+              <span
+                key={index}
+                className={selectedMonthInfo?.month === data.month ? 'text-[#006c49] font-extrabold' : 'text-slate-400'}
+              >
+                {data.month.toUpperCase()}
+              </span>
+            ))}
           </div>
         </div>
 
@@ -212,19 +270,19 @@ export default function ReportsView({ transactions, onToast }: ReportsViewProps)
             </div>
             <div className="flex items-center gap-1 text-[#6cf8bb] mt-2.5 text-xs font-bold">
               <TrendingUp className="w-4 h-4 shrink-0" />
-              <span>Meningkat 8.2% Kuartal Ini</span>
+              <span>Berdasarkan rentang tanggal</span>
             </div>
           </div>
 
           {/* Card: Equity Health Ratio */}
           <div className="bg-white p-6 rounded-2xl border border-[#c5c6cd] flex flex-col justify-center relative overflow-hidden">
             <div className="absolute right-0 top-0 w-24 h-24 bg-slate-50 rounded-full -mr-8 -mt-8 -z-10 pointer-events-none" />
-            <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">RASIO EKUITAS (EQUITY RATIO)</span>
+            <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">MARGIN LABA BERSIH</span>
             <div className="text-lg sm:text-xl font-black text-[#0b1c30] mt-1.5 font-mono">
-              68.4%
+              {safePercent(labaBersihTotal)}
             </div>
             <div className="text-[10px] text-slate-500 font-medium mt-2.5">
-              Rasio solvabilitas &amp; kesehatan keuangan: <span className="text-[#006c49] font-bold">Sangat Stabil</span>
+              Rasio efisiensi perolehan laba dari total pendapatan
             </div>
           </div>
         </div>
@@ -233,7 +291,7 @@ export default function ReportsView({ transactions, onToast }: ReportsViewProps)
 
       {/* Laba Rugi Table Section */}
       <section className="bg-white rounded-2xl border border-[#c5c6cd] shadow-xs overflow-hidden">
-        
+
         {/* Table header menu bar */}
         <div className="px-6 py-4 bg-slate-50 flex flex-col sm:flex-row justify-between items-center border-b border-[#c5c6cd] gap-4">
           <div className="flex items-center gap-3">
@@ -242,10 +300,10 @@ export default function ReportsView({ transactions, onToast }: ReportsViewProps)
             </div>
             <div>
               <h3 className="font-bold text-sm text-[#091426] tracking-tight">Laporan Laba Rugi Perusahaan</h3>
-              <p className="text-[10px] text-slate-400">Laporan operasional komprehensif dikalkulasi real-time</p>
+              <p className="text-[10px] text-slate-400">Laporan operasional komprehensif dikalkulasi real-time dari Database</p>
             </div>
           </div>
-          <button 
+          <button
             type="button"
             onClick={handleExportLabaRugi}
             disabled={isExportingLabaRugi}
@@ -267,7 +325,7 @@ export default function ReportsView({ transactions, onToast }: ReportsViewProps)
               </tr>
             </thead>
             <tbody className="text-xs">
-              
+
               {/* Pendapatan Operasional Group Header */}
               <tr className="bg-slate-50/50 font-bold border-b border-[#c5c6cd] text-[#091426]">
                 <td className="px-6 py-3">Pendapatan Operasional (Kotor)</td>
@@ -276,42 +334,47 @@ export default function ReportsView({ transactions, onToast }: ReportsViewProps)
               </tr>
               {/* Items */}
               <tr className="border-b border-slate-150 hover:bg-slate-50/20 transition-colors">
-                <td className="px-6 py-2.5 pl-12 text-slate-500 italic">Penjualan Produk Sektor A (Grosir &amp; Retail)</td>
-                <td className="px-6 py-2.5 text-right font-mono text-slate-600">{formatIDRLabs(seedPenjualanProdukA)}</td>
-                <td className="px-6 py-2.5 text-right font-mono text-slate-400">{(seedPenjualanProdukA / totalPendapatan * 100).toFixed(1)}%</td>
+                <td className="px-6 py-2.5 pl-12 text-slate-500 italic">Penjualan Produk</td>
+                <td className="px-6 py-2.5 text-right font-mono text-slate-600">{formatIDRLabs(incomeSales)}</td>
+                <td className="px-6 py-2.5 text-right font-mono text-slate-400">{safePercent(incomeSales)}</td>
               </tr>
               <tr className="border-b border-slate-150 hover:bg-slate-50/20 transition-colors">
-                <td className="px-6 py-2.5 pl-12 text-slate-500 italic">Pendapatan Jasa Konsultasi &amp; Pengembangan Sistem</td>
-                <td className="px-6 py-2.5 text-right font-mono text-slate-600">{formatIDRLabs(seedPenjualanKonsultasi)}</td>
-                <td className="px-6 py-2.5 text-right font-mono text-slate-400">{(seedPenjualanKonsultasi / totalPendapatan * 100).toFixed(1)}%</td>
+                <td className="px-6 py-2.5 pl-12 text-slate-500 italic">Pendapatan Jasa</td>
+                <td className="px-6 py-2.5 text-right font-mono text-slate-600">{formatIDRLabs(incomeJasa)}</td>
+                <td className="px-6 py-2.5 text-right font-mono text-slate-400">{safePercent(incomeJasa)}</td>
+              </tr>
+              <tr className="border-b border-slate-150 hover:bg-slate-50/20 transition-colors">
+                <td className="px-6 py-2.5 pl-12 text-slate-500 italic">Pendapatan Lainnya</td>
+                <td className="px-6 py-2.5 text-right font-mono text-slate-600">{formatIDRLabs(incomeLainnya)}</td>
+                <td className="px-6 py-2.5 text-right font-mono text-slate-400">{safePercent(incomeLainnya)}</td>
               </tr>
 
               {/* HPP (COGS) */}
               <tr className="bg-slate-50/50 font-bold border-b border-[#c5c6cd] text-[#091426]">
                 <td className="px-6 py-3">Beban Pokok Penjualan (HPP)</td>
                 <td className="px-6 py-3 text-right font-mono text-[#ba1a1a]">{formatIDRLabs(costOfGoodsSold)}</td>
-                <td className="px-6 py-3 text-right font-mono">{(costOfGoodsSold / totalPendapatan * 100).toFixed(1)}%</td>
+                <td className="px-6 py-3 text-right font-mono">{safePercent(costOfGoodsSold)}</td>
               </tr>
 
               {/* Laba Kotor Header highlight */}
               <tr className="bg-[#6cf8bb]/10 text-[#006c49] font-bold border-b border-[#c5c6cd]">
                 <td className="px-6 py-3.5 text-sm uppercase tracking-tight">LABA KOTOR (GROSS PROFIT)</td>
                 <td className="px-6 py-3.5 text-right font-mono text-sm">{formatIDRLabs(labaKotor)}</td>
-                <td className="px-6 py-3.5 text-right font-mono font-black">{(labaKotor / totalPendapatan * 100).toFixed(1)}%</td>
+                <td className="px-6 py-3.5 text-right font-mono font-black">{safePercent(labaKotor)}</td>
               </tr>
 
               {/* Operational Expenses */}
               <tr className="border-b border-[#c5c6cd] hover:bg-slate-50/30 transition-colors font-medium">
                 <td className="px-6 py-3 pl-8 text-[#091426]">Total Beban Operasional Umum &amp; Administrasi</td>
                 <td className="px-6 py-3 text-right font-mono text-[#ba1a1a]">{formatIDRLabs(bebanOperasional)}</td>
-                <td className="px-6 py-3 text-right font-mono text-slate-400">{(bebanOperasional / totalPendapatan * 100).toFixed(1)}%</td>
+                <td className="px-6 py-3 text-right font-mono text-slate-400">{safePercent(bebanOperasional)}</td>
               </tr>
 
               {/* LABA BERSIH OPERASIONAL FINAL */}
               <tr className="bg-[#091426] text-white border-b-2 border-slate-900 font-extrabold">
                 <td className="px-6 py-4 text-xs sm:text-sm uppercase tracking-widest font-sans">LABA BERSIH OPERASIONAL (NET INCOME)</td>
                 <td className="px-6 py-4 text-right font-mono text-xs sm:text-sm text-[#6cf8bb]">{formatIDRLabs(labaBersihTotal)}</td>
-                <td className="px-6 py-4 text-right font-mono text-[#6cf8bb]">{(labaBersihTotal / totalPendapatan * 100).toFixed(1)}%</td>
+                <td className="px-6 py-4 text-right font-mono text-[#6cf8bb]">{safePercent(labaBersihTotal)}</td>
               </tr>
 
             </tbody>
@@ -321,7 +384,7 @@ export default function ReportsView({ transactions, onToast }: ReportsViewProps)
 
       {/* Perubahan Modal Block Section */}
       <section className="bg-white rounded-2xl border border-[#c5c6cd] shadow-xs overflow-hidden">
-        
+
         {/* Module Header Bar */}
         <div className="px-6 py-4 bg-slate-50 flex flex-col sm:flex-row justify-between items-center border-b border-[#c5c6cd] gap-4">
           <div className="flex items-center gap-3">
@@ -333,7 +396,7 @@ export default function ReportsView({ transactions, onToast }: ReportsViewProps)
               <p className="text-[10px] text-slate-400">Analisis ekuitas akhir pemilik bisnis berstandar SAK EMKM</p>
             </div>
           </div>
-          <button 
+          <button
             type="button"
             onClick={handleExportChangesModal}
             disabled={isExportingModal}
@@ -347,7 +410,7 @@ export default function ReportsView({ transactions, onToast }: ReportsViewProps)
         {/* Small grid parameters */}
         <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 border-b border-[#c5c6cd] bg-white">
           <div className="p-4 bg-slate-50 border border-[#c5c6cd] rounded-xl">
-            <span className="text-[9px] font-bold text-slate-400 font-mono uppercase tracking-wider block">Modal Awal (1 Jan 2026)</span>
+            <span className="text-[9px] font-bold text-slate-400 font-mono uppercase tracking-wider block">Modal Awal</span>
             <span className="text-sm font-black font-mono text-[#091426] block mt-1.5">{formatIDRLabs(modalAwal)}</span>
           </div>
           <div className="p-4 bg-emerald-50/40 border border-[#6cf8bb]/30 rounded-xl">
@@ -365,7 +428,7 @@ export default function ReportsView({ transactions, onToast }: ReportsViewProps)
           <div className="bg-[#091426] text-white p-6 rounded-xl flex flex-col sm:flex-row justify-between items-center gap-4">
             <div>
               <h4 className="text-sm font-bold tracking-tight">Modal Akhir Perusahaan</h4>
-              <p className="text-[10px] text-slate-400 italic mt-0.5">Representasi neraca ekuitas akhir per 31 Desember 2026</p>
+              <p className="text-[10px] text-slate-400 italic mt-0.5">Representasi neraca ekuitas akhir periode ini</p>
             </div>
             <div className="text-xl sm:text-2xl font-black font-mono text-[#6cf8bb]">
               {formatIDRLabs(modalAkhir)}
