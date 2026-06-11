@@ -58,7 +58,6 @@ export default function SettingsView({
     setIsSaving(true);
 
     try {
-      // Ambil JWT token dari localStorage (sesuaikan dengan cara Anda menyimpan token)
       const token = localStorage.getItem('token');
 
       const payload = {
@@ -80,7 +79,7 @@ export default function SettingsView({
         }
       };
 
-      const response = await fetch(`${process.env.DATABASE_URL}/api/settings`, {
+      const response = await fetch(`http://localhost:5000/api/settings`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -93,7 +92,6 @@ export default function SettingsView({
         throw new Error('Gagal menyimpan data ke server');
       }
 
-      // Jika sukses, update state global/parent via props
       setBusinessProfile(payload.businessProfile);
       setUserProfile({ ...userProfile, ...payload.userProfile });
       setPreferences(payload.preferences);
@@ -131,13 +129,64 @@ export default function SettingsView({
       return;
     }
 
-    // Simulasi upload atau logic FormData Anda di sini...
-    onToast(`File ${file.name} siap diunggah!`, 'success');
+    onToast('Sedang mengunggah logo...', 'success');
+
+    try {
+      const token = localStorage.getItem('token');
+
+      const formData = new FormData();
+      formData.append('logo', file);
+
+      const response = await fetch(`http://localhost:5000/api/upload-logo`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error('Gagal mengunggah logo ke server.');
+      }
+
+      const data = await response.json();
+
+      if (data.logoUrl) {
+        setBizLogo(data.logoUrl); // Perbarui state logo di UI secara instan
+        onToast('Logo berhasil diunggah! Jangan lupa klik Simpan Perubahan.', 'success');
+      } else {
+        throw new Error('Format balasan server tidak sesuai.');
+      }
+
+    } catch (error: any) {
+      console.error('Error uploading logo:', error);
+      onToast(error.message || 'Terjadi kesalahan saat mengunggah.', 'error');
+    }
   };
 
   const handleLogoRemove = () => {
     setBizLogo('https://cdn-icons-png.flaticon.com/512/3135/3135715.png');
     onToast('Logo bisnis dihapus.', 'success');
+  };
+
+  const handleRequestPasswordReset = async () => {
+    onToast('Memproses pengiriman email aman...', 'success');
+    try {
+      const response = await fetch(`http://localhost:5000/api/users/request-reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: userEmail })
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        onToast('Tautan pengubah sandi aman dikirim ke email Anda!', 'success');
+      } else {
+        onToast(data.error, 'error');
+      }
+    } catch (err) {
+      onToast('Gagal terhubung ke server', 'error');
+    }
   };
 
   return (
@@ -295,9 +344,8 @@ export default function SettingsView({
               <div className="pt-2">
                 <button
                   type="button"
-                  onClick={() => onToast('Tautan pengubah sandi aman dikirim ke email Anda.', 'success')}
-                  className="w-full py-2.5 border border-[#c5c6cd] hover:bg-slate-50 text-xs font-bold text-slate-600 rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer"
-                >
+                  onClick={handleRequestPasswordReset}
+                  className="w-full py-2.5 border border-[#c5c6cd] hover:bg-slate-50 text-xs font-bold text-slate-600 rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer">
                   <Fingerprint className="w-3.5 h-3.5" />
                   <span>Ubah Sandi Keamanan</span>
                 </button>

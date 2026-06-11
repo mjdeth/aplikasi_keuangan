@@ -24,6 +24,8 @@ import SettingsView from './components/SettingsView';
 import AuthView from './components/AuthView';
 import TransactionModal from './components/TransactionModal';
 import HelpCenter from './components/HelpCenter';
+import Terms from './components/Terms';
+import Privacy from './components/Privacy';
 
 import {
   INITIAL_BUSINESS_PROFILE,
@@ -68,7 +70,6 @@ export default function App() {
     return saved ? JSON.parse(saved) : INITIAL_PREFERENCES;
   });
 
-  // 3. Auxiliary UI States
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isAddTxModalOpen, setIsAddTxModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
@@ -91,7 +92,7 @@ export default function App() {
 
   // --- MENGAMBIL DATA TRANSAKSI DARI DATABASE CLOUD ---
   useEffect(() => {
-    const fetchTransactions = async () => {
+    const fetchData = async () => {
       const token = localStorage.getItem('token');
       const userStr = localStorage.getItem('user');
 
@@ -99,28 +100,44 @@ export default function App() {
       const user = JSON.parse(userStr);
 
       try {
-        const response = await fetch(`http://localhost:5000/api/transactions/${user.id}`, {
+        const txResponse = await fetch(`http://localhost:5000/api/transactions/${user.id}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        if (response.ok) {
-          const data = await response.json();
-          // Backend PostgreSQL mereturn string untuk DATE, kita pastikan mappingnya sesuai
-          const mappedData = data.map((tx: any) => ({
+        if (txResponse.ok) {
+          const txData = await txResponse.json();
+          const mappedData = txData.map((tx: any) => ({
             ...tx,
-            date: tx.date.split('T')[0] // Ambil bagian tanggal saja (YYYY-MM-DD)
+            date: tx.date.split('T')[0]
           }));
           setTransactions(mappedData);
         }
+
+        const settingsResponse = await fetch(`http://localhost:5000/api/settings`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (settingsResponse.ok) {
+          const settingsData = await settingsResponse.json();
+
+          if (settingsData.businessProfile) {
+            setBusinessProfile(settingsData.businessProfile);
+            localStorage.setItem('equicount_profile', JSON.stringify(settingsData.businessProfile));
+          }
+          if (settingsData.userProfile) {
+            setUserProfile(prev => ({ ...prev, ...settingsData.userProfile }));
+          }
+        }
       } catch (error) {
-        console.error("Gagal menarik data transaksi:", error);
+        console.error("Gagal menarik data dari server:", error);
       }
     };
 
     if (isAuthenticated) {
-      fetchTransactions();
+      fetchData();
     } else {
-      setTransactions([]); // Kosongkan transaksi jika logout
+      setTransactions([]);
+      setBusinessProfile(INITIAL_BUSINESS_PROFILE);
     }
   }, [isAuthenticated]);
 
@@ -239,10 +256,11 @@ export default function App() {
         return (
           <LandingPage
             onJoinDemo={() => {
-              setActiveTab('auth'); // Arahkan ke auth dulu, tidak langsung masuk
+              setActiveTab('auth');
               dispatchToast('Silakan masuk atau daftar terlebih dahulu!', 'success');
             }}
             onGoToAuth={handleGoToAuthRegister}
+            onOpenLegal={(tab) => setActiveTab(tab)}
           />
         );
 
@@ -290,11 +308,24 @@ export default function App() {
             <AuthView
               onLoginSuccess={handleLoginSuccess}
               onToast={dispatchToast}
+              onOpenLegal={(tab) => setActiveTab(tab)}
             />
           </div>
         );
       case 'help':
         return <HelpCenter />;
+      case 'terms':
+        return (
+          <div className="max-w-4xl mx-auto py-8">
+            <Terms />
+          </div>
+        );
+      case 'privacy':
+        return (
+          <div className="max-w-4xl mx-auto py-8">
+            <Privacy />
+          </div>
+        );
       default:
         return <div className="text-center p-12 font-bold">Laman tidak ditemukan.</div>;
     }

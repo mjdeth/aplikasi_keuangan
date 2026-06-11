@@ -159,8 +159,7 @@ export default function DashboardView({
           <div className="flex justify-between items-start">
             <div>
               <p className="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider">SALDO SAAT INI</p>
-              <h3 className="text-xl sm:text-2xl font-black text-[#0b1c30] mt-1 font-mono">
-                {formatIDR(finalBalance)}
+              <h3 className="text-xl sm:text-1xl font-black text-[#0b1c30] mt-1 font-mono">{formatIDR(finalBalance)}
               </h3>
             </div>
             <div className="p-3 bg-[#eff4ff] text-[#091426] rounded-xl shrink-0">
@@ -178,7 +177,7 @@ export default function DashboardView({
           <div className="flex justify-between items-start">
             <div>
               <p className="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider">TOTAL PEMASUKAN</p>
-              <h3 className="text-xl sm:text-2xl font-black text-[#006c49] mt-1 font-mono">
+              <h3 className="text-xl sm:text-1xl font-black text-[#006c49] mt-1 font-mono">
                 {formatIDR(computedIncome)}
               </h3>
             </div>
@@ -196,7 +195,7 @@ export default function DashboardView({
           <div className="flex justify-between items-start">
             <div>
               <p className="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider">TOTAL PENGELUARAN</p>
-              <h3 className="text-xl sm:text-2xl font-black text-[#ba1a1a] mt-1 font-mono">
+              <h3 className="text-xl sm:text-1xl font-black text-[#ba1a1a] mt-1 font-mono">
                 {formatIDR(computedExpense)}
               </h3>
             </div>

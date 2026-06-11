@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 
 const verifyToken = (req, res, next) => {
-    // Ambil token dari header request (biasanya formatnya: "Bearer <token>")
+    // Ambil token dari header
     const authHeader = req.header('Authorization');
     const token = authHeader && authHeader.split(' ')[1];
 

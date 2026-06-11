@@ -18,17 +18,16 @@ import { UserProfile } from '../types';
 interface AuthViewProps {
   onLoginSuccess: (user: UserProfile, businessName?: string) => void;
   onToast: (msg: string, status?: 'success' | 'error') => void;
+  onOpenLegal: (tab: 'terms' | 'privacy') => void;
 }
 
-export default function AuthView({ onLoginSuccess, onToast }: AuthViewProps) {
+export default function AuthView({ onLoginSuccess, onToast, onOpenLegal }: AuthViewProps) {
   const [tab, setTab] = useState<'login' | 'register'>('login');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Login Form States
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
-  // Register Form States
   const [regFirstName, setRegFirstName] = useState('');
   const [regLastName, setRegLastName] = useState('');
   const [regBusiness, setRegBusiness] = useState('');
@@ -36,7 +35,7 @@ export default function AuthView({ onLoginSuccess, onToast }: AuthViewProps) {
   const [regPassword, setRegPassword] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
 
-  // --- FUNGSI LOGIN (TERHUBUNG KE API) ---
+  // --- FUNGSI LOGIN ---
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     if (!loginEmail.trim() || !loginPassword.trim()) {
@@ -72,7 +71,8 @@ export default function AuthView({ onLoginSuccess, onToast }: AuthViewProps) {
         email: data.user.email,
         role: data.user.role,
         avatarUrl: data.user.avatar_url || 'https://lh3.googleusercontent.com/aida-public/AB6AXuBd6pRN3jnPuz6h0mwwyuNny1yRd1jz-Hxy9QWzMnyO91MDkBwrV7g6T5WzOaveaRS_dxv_RoliGhLlsbozUa87SXSq7a5nvJPwuMGYoHG-BIkK_gm-MWf7iNFGTVBixp_FDvSaQvPGbV9PMGJKe6a5EzlV7Hx4_DMVZlRzQtYMt86P2J9xJDdMO_IjRiYqqcNofjaXd1wfqsJs7AuJEEmvCVAlMbenCvJiff7iCeaBd-uZWKPib6qISk_X28ZFBxHxxImcKHtlIWcI'
-      });
+      }, data.businessProfile?.name);
+
     } catch (error) {
       onToast('Gagal terhubung ke server database', 'error');
     } finally {
@@ -80,7 +80,7 @@ export default function AuthView({ onLoginSuccess, onToast }: AuthViewProps) {
     }
   };
 
-  // --- FUNGSI REGISTER (TERHUBUNG KE API) ---
+  // --- FUNGSI REGISTER ---
   const handleRegister = async (e: FormEvent) => {
     e.preventDefault();
     if (!regFirstName.trim() || !regBusiness.trim() || !regEmail.trim() || !regPassword.trim()) {
@@ -103,7 +103,8 @@ export default function AuthView({ onLoginSuccess, onToast }: AuthViewProps) {
           full_name: fullName,
           email: regEmail,
           password: regPassword,
-          role: 'Admin Bisnis'
+          role: 'Admin Bisnis',
+          business_name: regBusiness
         }),
       });
 
@@ -114,10 +115,14 @@ export default function AuthView({ onLoginSuccess, onToast }: AuthViewProps) {
         setIsLoading(false);
         return;
       }
+      onToast('Pendaftaran Berhasil! Silakan periksa email Anda untuk memverifikasi akun.', 'success');
+      setTab('login');
 
-      // Simpan token ke localStorage (otomatis login setelah register)
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
+      if (data.businessProfile) {
+        localStorage.setItem('businessProfile', JSON.stringify(data.businessProfile));
+      }
 
       onToast('Pendaftaran Berhasil! Membuka Dashboard Baru...', 'success');
 
@@ -126,7 +131,7 @@ export default function AuthView({ onLoginSuccess, onToast }: AuthViewProps) {
         email: data.user.email,
         role: data.user.role,
         avatarUrl: data.user.avatar_url || 'https://lh3.googleusercontent.com/aida-public/AB6AXuBd6pRN3jnPuz6h0mwwyuNny1yRd1jz-Hxy9QWzMnyO91MDkBwrV7g6T5WzOaveaRS_dxv_RoliGhLlsbozUa87SXSq7a5nvJPwuMGYoHG-BIkK_gm-MWf7iNFGTVBixp_FDvSaQvPGbV9PMGJKe6a5EzlV7Hx4_DMVZlRzQtYMt86P2J9xJDdMO_IjRiYqqcNofjaXd1wfqsJs7AuJEEmvCVAlMbenCvJiff7iCeaBd-uZWKPib6qISk_X28ZFBxHxxImcKHtlIWcI'
-      }, regBusiness);
+      }, data.businessProfile?.name);
     } catch (error) {
       onToast('Gagal terhubung ke server database', 'error');
     } finally {
@@ -141,16 +146,14 @@ export default function AuthView({ onLoginSuccess, onToast }: AuthViewProps) {
   return (
     <div className="max-w-[460px] w-full mx-auto space-y-6 select-none animate-in fade-in zoom-in-95 duration-200">
 
-      {/* Primary login panel card */}
       <div className="bg-white/85 backdrop-blur-md rounded-2xl p-6 sm:p-8 border border-[#c5c6cd] shadow-xl space-y-6">
 
-        {/* Tab Switching controls */}
         <div className="flex border-b border-[#c5c6cd]">
           <button
             onClick={() => setTab('login')}
             className={`flex-1 pb-3 text-xs font-bold transition-all border-b-2 cursor-pointer text-center ${tab === 'login'
-                ? 'text-[#091426] border-[#091426]'
-                : 'text-slate-400 border-transparent hover:text-slate-600'
+              ? 'text-[#091426] border-[#091426]'
+              : 'text-slate-400 border-transparent hover:text-slate-600'
               }`}
           >
             Masuk Akun
@@ -158,8 +161,8 @@ export default function AuthView({ onLoginSuccess, onToast }: AuthViewProps) {
           <button
             onClick={() => setTab('register')}
             className={`flex-1 pb-3 text-xs font-bold transition-all border-b-2 cursor-pointer text-center ${tab === 'register'
-                ? 'text-[#091426] border-[#091426]'
-                : 'text-slate-400 border-transparent hover:text-slate-600'
+              ? 'text-[#091426] border-[#091426]'
+              : 'text-slate-400 border-transparent hover:text-slate-600'
               }`}
           >
             Mulai Daftar Baru
@@ -167,7 +170,6 @@ export default function AuthView({ onLoginSuccess, onToast }: AuthViewProps) {
         </div>
 
         {tab === 'login' ? (
-          /* Login block form */
           <form onSubmit={handleLogin} className="space-y-4">
 
             <div className="space-y-1.5">
@@ -282,7 +284,7 @@ export default function AuthView({ onLoginSuccess, onToast }: AuthViewProps) {
               </div>
             </div>
 
-            <div className="flex items-start gap-2.5 pt-1">
+            <div className="flex items-start gap-2 mt-4">
               <input
                 type="checkbox"
                 id="agree-checkbox"
@@ -291,7 +293,11 @@ export default function AuthView({ onLoginSuccess, onToast }: AuthViewProps) {
                 className="mt-1 rounded text-[#091426] focus:ring-[#091426] cursor-pointer"
               />
               <label htmlFor="agree-checkbox" className="text-[10px] sm:text-xs text-slate-500 leading-relaxed cursor-pointer select-none">
-                Saya menyetujui <span className="text-[#00714d] font-semibold hover:underline">Syarat & Ketentuan</span> serta <span className="text-[#00714d] font-semibold hover:underline">Kebijakan Privasi</span> data EquiCount SME.
+                Saya menyetujui{' '}
+                <span onClick={() => onOpenLegal('terms')} className="text-[#00714d] font-semibold hover:underline">Syarat & Ketentuan</span>
+                {' '}serta{' '}
+                <span onClick={() => onOpenLegal('privacy')} className="text-[#00714d] font-semibold hover:underline">Kebijakan Privasi</span>
+                {' '}data EquiCount SME.
               </label>
             </div>
 

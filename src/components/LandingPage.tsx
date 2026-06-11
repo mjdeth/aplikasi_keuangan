@@ -21,9 +21,10 @@ import { ActiveTab } from '../types';
 interface LandingPageProps {
   onJoinDemo: () => void;
   onGoToAuth: () => void;
+  onOpenLegal: (tab: 'terms' | 'privacy') => void;
 }
 
-export default function LandingPage({ onJoinDemo, onGoToAuth }: LandingPageProps) {
+export default function LandingPage({ onJoinDemo, onGoToAuth, onOpenLegal }: LandingPageProps) {
   return (
     <div className="bg-[#f8f9ff] min-h-screen text-[#0b1c30] select-none font-sans overflow-x-hidden">
       {/* Hero Section */}
@@ -279,9 +280,9 @@ export default function LandingPage({ onJoinDemo, onGoToAuth }: LandingPageProps
               © 2026 EquiCount SME. Menghadirkan Pembukuan Presisi Tinggi untuk Pelaku Usaha Indonesia.
             </p>
           </div>
-          <div className="flex gap-6 font-semibold">
-            <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-[#0b1c30] transition-colors">Syarat &amp; Ketentuan</a>
-            <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-[#0b1c30] transition-colors">Kebijakan Privasi</a>
+          <div className="flex gap-6 font-semibold cursor-pointer">
+            <span onClick={() => onOpenLegal('terms')} className="hover:text-[#0b1c30] transition-colors">Syarat &amp; Ketentuan</span>
+            <span onClick={() => onOpenLegal('privacy')} className="hover:text-[#0b1c30] transition-colors">Kebijakan Privasi</span>
             <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-[#0b1c30] transition-colors">Hubungi Kami</a>
           </div>
         </div>

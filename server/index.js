@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import pool from './db.js';
 import transactionRoutes from './routes/transactions.js';
 import userRoutes from './routes/users.js';
+import settingsRoutes from './routes/settings.js';
 
 dotenv.config();
 
@@ -21,8 +22,8 @@ app.get('/', (req, res) => {
 });
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/settings', settingsRoutes);
 
-// --- Menjalankan Server ---
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server backend berjalan di http://localhost:${PORT}`);

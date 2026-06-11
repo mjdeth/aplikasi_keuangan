@@ -159,7 +159,7 @@ export default function Sidebar({
     <>
       {/* Desktop Sidebar: hidden on mobile, fixed width on desktop */}
       <aside
-        className="hidden md:flex flex-col h-screen w-[280px] shrink-0 bg-white border-r border-[#c5c6cd]"
+        className="hidden md:flex flex-col h-screen overflow-y-auto w-[280px] shrink-0 bg-white border-r border-[#c5c6cd]"
       >
         {renderContent()}
       </aside>
@@ -174,7 +174,7 @@ export default function Sidebar({
 
       {/* Mobile Sidebar Slide-out */}
       <aside
-        className={`md:hidden fixed top-0 bottom-0 left-0 w-[280px] bg-white border-r border-[#c5c6cd] z-[70] transform transition-transform duration-300 ease-in-out ${isOpenMobile ? 'translate-x-0' : '-translate-x-full'
+        className={`md:hidden fixed top-0 bottom-0 left-0 w-[280px] overflow-y-auto bg-white border-r border-[#c5c6cd] z-[70] transform transition-transform duration-300 ease-in-out ${isOpenMobile ? 'translate-x-0' : '-translate-x-full'
           }`}
         id="mobile-sidebar-shell"
       >

@@ -4,7 +4,6 @@ import verifyToken from '../middleware/auth.js';
 
 const router = express.Router();
 
-// --- C: CREATE (Tambah Transaksi Baru) ---
 router.post('/', verifyToken, async (req, res) => {
     try {
         const { user_id, date, type, category, note, amount, status } = req.body;
