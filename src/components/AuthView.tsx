@@ -11,7 +11,9 @@ import {
   Building2,
   ArrowRight,
   LogIn,
-  ShieldCheck
+  ShieldCheck,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { UserProfile } from '../types';
 
@@ -34,6 +36,8 @@ export default function AuthView({ onLoginSuccess, onToast, onOpenLegal }: AuthV
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegPassword, setShowRegPassword] = useState(false);
 
   // --- FUNGSI LOGIN ---
   const handleLogin = async (e: FormEvent) => {
@@ -196,12 +200,25 @@ export default function AuthView({ onLoginSuccess, onToast, onOpenLegal }: AuthV
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
-                  type="password"
+                  type={showLoginPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 focus:bg-white border border-[#c5c6cd] focus:border-[#091426] rounded-xl focus:outline-none"
+                  className="w-full pl-9 pr-10 py-2 text-xs bg-slate-50 focus:bg-white border border-[#c5c6cd] focus:border-[#091426] rounded-xl focus:outline-none"
                 />
+
+                <button
+                  type="button"
+                  onClick={() => setShowLoginPassword(!showLoginPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#091426] transition-colors cursor-pointer focus:outline-none"
+                  tabIndex={-1}
+                >
+                  {showLoginPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
               </div>
             </div>
 
@@ -274,13 +291,27 @@ export default function AuthView({ onLoginSuccess, onToast, onOpenLegal }: AuthV
               <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono">BUAT SANDI KEAMANAN</label>
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+
                 <input
-                  type="password"
+                  type={showRegPassword ? "text" : "password"}
                   placeholder="Minimal 8 Karakter"
                   value={regPassword}
                   onChange={(e) => setRegPassword(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 focus:bg-white border border-[#c5c6cd] rounded-xl focus:outline-none"
+                  className="w-full pl-9 pr-10 py-2 text-xs bg-slate-50 focus:bg-white border border-[#c5c6cd] rounded-xl focus:outline-none"
                 />
+
+                <button
+                  type="button"
+                  onClick={() => setShowRegPassword(!showRegPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#091426] transition-colors cursor-pointer focus:outline-none"
+                  tabIndex={-1}
+                >
+                  {showRegPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
               </div>
             </div>
 
@@ -306,7 +337,7 @@ export default function AuthView({ onLoginSuccess, onToast, onOpenLegal }: AuthV
               disabled={isLoading}
               className="w-full text-xs font-bold py-3 bg-[#006c49] hover:bg-emerald-800 text-white rounded-xl flex items-center justify-center gap-2 active:scale-98 transition-all shadow-md cursor-pointer pt-3.5 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              <span>{isLoading ? 'Mendaftarkan Akun...' : 'Mulai Simulator Gratis'}</span>
+              <span>{isLoading ? 'Mendaftarkan Akun...' : 'Mulai Simulator'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
 

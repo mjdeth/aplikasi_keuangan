@@ -129,7 +129,7 @@ export default function LandingPage({ onJoinDemo, onGoToAuth, onOpenLegal }: Lan
             <motion.div
               whileHover={{ border: '1px solid #091426' }}
               className="md:col-span-8 p-6 sm:p-8 bg-[#f8f9ff] border border-slate-200 rounded-2xl flex flex-col justify-between hover:shadow-lg transition-all cursor-pointer group"
-              // onClick={onJoinDemo}
+              onClick={onJoinDemo}
               id="landing-bento-card-1"
             >
               <div className="flex justify-between items-start">

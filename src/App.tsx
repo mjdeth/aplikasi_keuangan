@@ -29,23 +29,27 @@ import Privacy from './components/Privacy';
 
 import {
   INITIAL_BUSINESS_PROFILE,
-  INITIAL_PREFERENCES
+  INITIAL_PREFERENCES,
+  INITIAL_TRANSACTIONS
 } from './data/initialData';
 
 export default function App() {
-  // 1. Core Authentication State (Berbasis Token JWT)
+  // 1. Core Authentication & Mode States
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return !!localStorage.getItem('token');
+    return !!localStorage.getItem('token') || localStorage.getItem('isDemoMode') === 'true';
+  });
+
+  const [isDemoMode, setIsDemoMode] = useState<boolean>(() => {
+    return localStorage.getItem('isDemoMode') === 'true';
   });
 
   const [activeTab, setActiveTab] = useState<ActiveTab>(() => {
-    return localStorage.getItem('token') ? 'dashboard' : 'landing';
+    return (localStorage.getItem('token') || localStorage.getItem('isDemoMode') === 'true') ? 'dashboard' : 'landing';
   });
 
   // 2. Data States
-  const [transactions, setTransactions] = useState<Transaction[]>([]); // Default kosong, akan diisi dari API
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
-  // Mengambil profil dari localStorage jika sudah login
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
@@ -56,6 +60,10 @@ export default function App() {
         role: parsed.role,
         avatarUrl: parsed.avatar_url || parsed.avatarUrl || 'https://lh3.googleusercontent.com/aida-public/AB6AXuBd6pRN3jnPuz6h0mwwyuNny1yRd1jz-Hxy9QWzMnyO91MDkBwrV7g6T5WzOaveaRS_dxv_RoliGhLlsbozUa87SXSq7a5nvJPwuMGYoHG-BIkK_gm-MWf7iNFGTVBixp_FDvSaQvPGbV9PMGJKe6a5EzlV7Hx4_DMVZlRzQtYMt86P2J9xJDdMO_IjRiYqqcNofjaXd1wfqsJs7AuJEEmvCVAlMbenCvJiff7iCeaBd-uZWKPib6qISk_X28ZFBxHxxImcKHtlIWcI'
       };
+    }
+    // Jika demo mode, tampilkan profil demo
+    if (localStorage.getItem('isDemoMode') === 'true') {
+      return { fullName: 'Pengguna Demo', email: 'demo@kascuan.com', role: 'Admin (Simulasi)', avatarUrl: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png' };
     }
     return { fullName: 'Tamu', email: '', role: 'Pengunjung', avatarUrl: '' };
   });
@@ -73,7 +81,6 @@ export default function App() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isAddTxModalOpen, setIsAddTxModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
-
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('Semua Kategori');
 
@@ -90,9 +97,19 @@ export default function App() {
     setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3500);
   };
 
-  // --- MENGAMBIL DATA TRANSAKSI DARI DATABASE CLOUD ---
+  // --- MENGAMBIL DATA (DARI DATABASE ATAU MOCK DATA) ---
   useEffect(() => {
     const fetchData = async () => {
+      if (isDemoMode) {
+        setTransactions(INITIAL_TRANSACTIONS);
+        setBusinessProfile({
+          ...INITIAL_BUSINESS_PROFILE,
+          name: 'Toko KasCuan (Mode Demo)',
+          type: 'Teknologi & Agensi Digital'
+        });
+        return;
+      }
+      // JIKA BUKAN DEMO: Lakukan Fetch ke API Asli
       const token = localStorage.getItem('token');
       const userStr = localStorage.getItem('user');
 
@@ -139,10 +156,26 @@ export default function App() {
       setTransactions([]);
       setBusinessProfile(INITIAL_BUSINESS_PROFILE);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isDemoMode]);
 
   // --- CRUD OPERASIONAL API ---
   const handleSaveTransaction = async (txData: Omit<Transaction, 'id'> & { id?: string }) => {
+    // INTERCEPT JIKA MODE DEMO
+    if (isDemoMode) {
+      if (txData.id) {
+        setTransactions(prev => prev.map(t => t.id === txData.id ? { ...t, ...txData } as Transaction : t));
+        dispatchToast('Koreksi log disimpan secara lokal (Mode Demo).', 'success');
+      } else {
+        const newTx = { ...txData, id: `demo-new-${Date.now()}` } as Transaction;
+        setTransactions(prev => [newTx, ...prev]);
+        dispatchToast('Catatan log ditambahkan secara lokal (Mode Demo).', 'success');
+      }
+      setEditingTransaction(null);
+      setIsAddTxModalOpen(false);
+      return;
+    }
+
+    // LOGIKA ASLI DATABASE
     const token = localStorage.getItem('token');
     const userStr = localStorage.getItem('user');
 
@@ -154,7 +187,6 @@ export default function App() {
 
     try {
       if (txData.id) {
-        // EDIT MODE (PUT)
         const response = await fetch(`http://localhost:5000/api/transactions/${txData.id}`, {
           method: 'PUT',
           headers: {
@@ -171,7 +203,6 @@ export default function App() {
           dispatchToast('Gagal memperbarui transaksi di server.', 'error');
         }
       } else {
-        // NEW MODE (POST)
         const payload = { ...txData, user_id: user.id };
         const response = await fetch('http://localhost:5000/api/transactions', {
           method: 'POST',
@@ -191,7 +222,7 @@ export default function App() {
         }
       }
       setEditingTransaction(null);
-      setIsAddTxModalOpen(false); // Tutup modal setelah sukses
+      setIsAddTxModalOpen(false);
     } catch (error) {
       dispatchToast('Terjadi kesalahan pada server.', 'error');
     }
@@ -200,6 +231,14 @@ export default function App() {
   const handleDeleteTransaction = async (id: string) => {
     if (!confirm('Apakah Anda yakin ingin menghapus catatan log transaksi ini dari pembukuan?')) return;
 
+    // INTERCEPT JIKA MODE DEMO
+    if (isDemoMode) {
+      setTransactions(prev => prev.filter(t => t.id !== id));
+      dispatchToast('Catatan log terhapus secara lokal (Mode Demo).', 'success');
+      return;
+    }
+
+    // LOGIKA ASLI DATABASE
     const token = localStorage.getItem('token');
     try {
       const response = await fetch(`http://localhost:5000/api/transactions/${id}`, {
@@ -226,23 +265,41 @@ export default function App() {
   // --- LOGOUT LOGIC ---
   const handleLogout = () => {
     if (confirm('Selesaikan sesi pembukuan dan keluar ke landing page?')) {
-      // Hapus tiket masuk dari browser
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      localStorage.removeItem('isDemoMode'); // Bersihkan status demo
 
       setIsAuthenticated(false);
+      setIsDemoMode(false);
       setActiveTab('landing');
       dispatchToast('Sesi ditutup secara aman.', 'success');
     }
   };
 
   const handleLoginSuccess = (user: UserProfile, bizName?: string) => {
+    setIsDemoMode(false); // Pastikan mode demo mati jika login asli
+    localStorage.removeItem('isDemoMode');
     setUserProfile(user);
     setIsAuthenticated(true);
     if (bizName) {
       setBusinessProfile(prev => ({ ...prev, name: bizName }));
     }
     setActiveTab('dashboard');
+  };
+
+  // --- MASUK KE MODE DEMO (DIPICU DARI LANDING PAGE) ---
+  const handleEnterDemo = () => {
+    setIsDemoMode(true);
+    localStorage.setItem('isDemoMode', 'true');
+    setIsAuthenticated(true);
+    setActiveTab('dashboard');
+    setUserProfile({
+      fullName: 'Pengguna Demo',
+      email: 'demo@kascuan.com',
+      role: 'Admin (Simulasi)',
+      avatarUrl: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'
+    });
+    dispatchToast('Berhasil masuk ke Lingkungan Simulasi (Demo)! Semua perubahan bersifat sementara.', 'success');
   };
 
   const handleGoToAuthRegister = () => {
@@ -255,10 +312,7 @@ export default function App() {
       case 'landing':
         return (
           <LandingPage
-            onJoinDemo={() => {
-              setActiveTab('auth');
-              dispatchToast('Silakan masuk atau daftar terlebih dahulu!', 'success');
-            }}
+            onJoinDemo={handleEnterDemo} // MENGGUNAKAN FUNGSI DEMO BARU
             onGoToAuth={handleGoToAuthRegister}
             onOpenLegal={(tab) => setActiveTab(tab)}
           />

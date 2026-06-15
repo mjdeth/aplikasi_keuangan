@@ -1,9 +1,11 @@
 import { Transaction, BusinessProfile, UserProfile, Preferences } from '../types';
 
+const currentYear = new Date().getFullYear();
+
 export const INITIAL_TRANSACTIONS: Transaction[] = [
   {
     id: 'tx-1',
-    date: '2024-10-24',
+    date: `${currentYear}-01-24`,
     type: 'expense',
     category: 'OPERASIONAL',
     note: 'Tagihan Listrik & Air - Kantor Pusat',
@@ -12,7 +14,7 @@ export const INITIAL_TRANSACTIONS: Transaction[] = [
   },
   {
     id: 'tx-2',
-    date: '2024-10-23',
+    date: `${currentYear}-02-23`,
     type: 'income',
     category: 'PENDAPATAN JASA',
     note: 'Proyek Web Development Tahap 1 - PT Global',
@@ -21,7 +23,7 @@ export const INITIAL_TRANSACTIONS: Transaction[] = [
   },
   {
     id: 'tx-3',
-    date: '2024-10-22',
+    date: `${currentYear}-03-22`,
     type: 'expense',
     category: 'GAJI',
     note: 'Gaji Bulanan - Tim Pemasaran & Desain',
@@ -30,7 +32,7 @@ export const INITIAL_TRANSACTIONS: Transaction[] = [
   },
   {
     id: 'tx-4',
-    date: '2024-10-21',
+    date: `${currentYear}-04-21`,
     type: 'income',
     category: 'PENDAPATAN JASA',
     note: 'Biaya Konsultasi Manajemen - PT Sentosa',
@@ -39,7 +41,7 @@ export const INITIAL_TRANSACTIONS: Transaction[] = [
   },
   {
     id: 'tx-5',
-    date: '2024-10-20',
+    date: `${currentYear}-05-20`,
     type: 'expense',
     category: 'PEMASARAN',
     note: 'Iklan Digital - Meta Ads & Google Search',
@@ -48,7 +50,7 @@ export const INITIAL_TRANSACTIONS: Transaction[] = [
   },
   {
     id: 'tx-6',
-    date: '2024-10-18',
+    date: `${currentYear}-06-18`,
     type: 'expense',
     category: 'OPERASIONAL',
     note: 'Pembelian Stok Bahan Baku Tambahan',
@@ -57,7 +59,7 @@ export const INITIAL_TRANSACTIONS: Transaction[] = [
   },
   {
     id: 'tx-7',
-    date: '2024-10-15',
+    date: `${currentYear}-07-15`,
     type: 'income',
     category: 'PENJUALAN PRODUK',
     note: 'Kontrak Penjualan Produk Retail - Batch 1',
@@ -66,7 +68,7 @@ export const INITIAL_TRANSACTIONS: Transaction[] = [
   },
   {
     id: 'tx-8',
-    date: '2024-10-10',
+    date: `${currentYear}-08-10`,
     type: 'income',
     category: 'PENJUALAN PRODUK',
     note: 'Penjualan Grosir - Reseller Surabaya',
@@ -75,16 +77,24 @@ export const INITIAL_TRANSACTIONS: Transaction[] = [
   },
   {
     id: 'tx-9',
-    date: '2024-09-28',
+    date: `${currentYear}-09-28`,
     type: 'expense',
     category: 'BEBAN POKOK (HPP)',
     note: 'Kulakan bahan baku utama produksi',
     amount: 32000000,
     status: 'completed'
+  },
+  {
+    id: 'tx-10',
+    date: `${currentYear}-10-05`,
+    type: 'expense',
+    category: 'PRIVE',
+    note: 'Penarikan Dana Pemilik (Prive)',
+    amount: 5000000,
+    status: 'completed'
   }
 ];
 
-// Seed other dates for laporan laba rugi representation
 export const SEED_YEAR_DATA = {
   pendapatanOperasional_ProdukA: 2400000000,
   pendapatanOperasional_JasaKonsultasi: 800000000,
