@@ -64,11 +64,11 @@ export default function Sidebar({
       {/* Brand Logo */}
       <div className="flex items-center gap-3 mb-8 cursor-pointer" onClick={() => handleTabClick('landing')}>
         <div className="w-10 h-10 bg-[#091426] flex items-center justify-center rounded-xl text-white shadow-md">
-          <span className="font-bold text-lg">Eq</span>
+          <span className="font-bold text-lg">Kas</span>
         </div>
         <div>
-          <h1 className="font-sans text-lg font-black text-[#091426] leading-none tracking-tight">EquiCount</h1>
-          <p className="text-[10px] font-mono uppercase tracking-widest text-[#45474c] mt-0.5">Precision Ledger</p>
+          <h1 className="font-sans text-lg font-black text-[#091426] leading-none tracking-tight">KasCuan</h1>
+          <p className="text-[10px] font-mono uppercase tracking-widest text-[#45474c] mt-0.5">pencatatan keuangan</p>
         </div>
       </div>
 
@@ -147,7 +147,7 @@ export default function Sidebar({
               id="sidebar-landing-btn"
             >
               <Compass className="w-4 h-4 shrink-0" />
-              <span>Explore EquiCount</span>
+              <span>Explore KasCuan</span>
             </button>
           </div>
         </div>

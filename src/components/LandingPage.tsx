@@ -51,7 +51,7 @@ export default function LandingPage({ onJoinDemo, onGoToAuth, onOpenLegal }: Lan
             </h1>
 
             <p className="text-sm sm:text-base text-[#45474c] max-w-xl mx-auto lg:mx-0 leading-relaxed font-sans">
-              Tinggalkan pencatatan manual di kertas atau Excel rumit. EquiCount membantu pemilik usaha mengelola arus kas, laporan laba rugi otomatis, hingga ekspor data secara presisi dan aman.
+              Tinggalkan pencatatan manual di kertas atau Excel rumit. KasCuan membantu pemilik usaha mengelola arus kas, laporan laba rugi otomatis, hingga ekspor data secara presisi dan aman.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
@@ -103,7 +103,7 @@ export default function LandingPage({ onJoinDemo, onGoToAuth, onOpenLegal }: Lan
                 </div>
                 <div className="flex items-center gap-1.5 text-xs text-[#6cf8bb] font-bold">
                   <span className="w-1.5 h-1.5 bg-[#6cf8bb] rounded-full animate-pulse" />
-                  <span>Sistem Enkripsi Perbankan</span>
+                  <span>Sistem Enkripsi Keuangan</span>
                 </div>
               </div>
             </div>
@@ -275,15 +275,14 @@ export default function LandingPage({ onJoinDemo, onGoToAuth, onOpenLegal }: Lan
       <footer className="bg-[#eff4ff] border-t border-slate-200 py-12 px-6 sm:px-12 xl:px-24">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-xs text-[#45474c]">
           <div className="flex flex-col items-center md:items-start gap-1">
-            <span className="font-extrabold text-[#091426] tracking-tight text-sm">EquiCount SME</span>
+            <span className="font-extrabold text-[#091426] tracking-tight text-sm">KasCuan</span>
             <p className="text-center md:text-left leading-relaxed">
-              © 2026 EquiCount SME. Menghadirkan Pembukuan Presisi Tinggi untuk Pelaku Usaha Indonesia.
+              © 2026 KasCuan. Menghadirkan Pembukuan Dengan Mudah untuk Pelaku Usaha Indonesia.
             </p>
           </div>
           <div className="flex gap-6 font-semibold cursor-pointer">
             <span onClick={() => onOpenLegal('terms')} className="hover:text-[#0b1c30] transition-colors">Syarat &amp; Ketentuan</span>
             <span onClick={() => onOpenLegal('privacy')} className="hover:text-[#0b1c30] transition-colors">Kebijakan Privasi</span>
-            <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-[#0b1c30] transition-colors">Hubungi Kami</a>
           </div>
         </div>
       </footer>

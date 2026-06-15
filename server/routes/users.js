@@ -61,9 +61,9 @@ router.post('/register', async (req, res) => {
 
         const verificationUrl = `http://localhost:5173/verify-email?token=${verificationToken}`;
         await transporter.sendMail({
-            from: `"EquiCount SME" <${process.env.EMAIL_USER}>`,
+            from: `"KasCuan" <${process.env.EMAIL_USER}>`,
             to: email,
-            subject: 'Verifikasi Akun EquiCount SME Anda',
+            subject: 'Verifikasi Akun KasCuan Anda',
             html: `<h3>Selamat datang di EquiCount!</h3>
                    <p>Halo ${full_name}, silakan klik tautan di bawah ini untuk memverifikasi akun Anda:</p>
                    <a href="${verificationUrl}" style="padding:10px 20px; background-color:#006c49; color:white; text-decoration:none; border-radius:8px;">Verifikasi Email Saya</a>
@@ -111,7 +111,7 @@ router.post('/request-reset-password', async (req, res) => {
         // Kirim Email
         const resetUrl = `http://localhost:5173/reset-password?token=${resetToken}`;
         await transporter.sendMail({
-            from: `"EquiCount SME" <${process.env.EMAIL_USER}>`,
+            from: `"KasCuan" <${process.env.EMAIL_USER}>`,
             to: email,
             subject: 'Permintaan Perubahan Kata Sandi',
             html: `<p>Halo ${result.rows[0].full_name},</p>

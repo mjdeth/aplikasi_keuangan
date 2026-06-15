@@ -189,7 +189,7 @@ export default function AuthView({ onLoginSuccess, onToast, onOpenLegal }: AuthV
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono">KATA SANDI</label>
-                <a href="#" onClick={(e) => { e.preventDefault(); onToast('Simulasi reset link terkirim!', 'success'); }} className="text-[10px] text-[#00714d] hover:underline font-semibold font-sans">
+                <a href="#" onClick={(e) => { e.preventDefault(); onToast('Sandi reset link terkirim!', 'success'); }} className="text-[10px] text-[#00714d] hover:underline font-semibold font-sans">
                   Lupa Sandi?
                 </a>
               </div>
@@ -297,7 +297,7 @@ export default function AuthView({ onLoginSuccess, onToast, onOpenLegal }: AuthV
                 <span onClick={() => onOpenLegal('terms')} className="text-[#00714d] font-semibold hover:underline">Syarat & Ketentuan</span>
                 {' '}serta{' '}
                 <span onClick={() => onOpenLegal('privacy')} className="text-[#00714d] font-semibold hover:underline">Kebijakan Privasi</span>
-                {' '}data EquiCount SME.
+                {' '}data KasCuan.
               </label>
             </div>
 
@@ -353,7 +353,7 @@ export default function AuthView({ onLoginSuccess, onToast, onOpenLegal }: AuthV
       {/* Trust shield indicators badge */}
       <div className="flex items-center justify-center gap-2 text-slate-500">
         <ShieldCheck className="w-4.5 h-4.5 text-[#006c49]" />
-        <span className="text-xs font-semibold">Enkripsi Kredensial & Data Standar Perbankan</span>
+        <span className="text-xs font-semibold">Enkripsi Kredensial & Data Standar Keamanan</span>
       </div>
 
     </div>

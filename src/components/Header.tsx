@@ -54,7 +54,7 @@ export default function Header({
   const [notifications, setNotifications] = useState<AppNotification[]>([
     { id: 1, text: "Laporan bulanan Mei telah siap diekspor.", isNew: true, timestamp: "10 menit yang lalu" },
     { id: 2, text: "Gaji Bulanan Pemasaran diset menjadi 'Pending'.", isNew: true, timestamp: "1 jam yang lalu" },
-    { id: 3, text: "Selamat bergabung di EquiCount SME!", isNew: false, timestamp: "2 hari yang lalu" }
+    { id: 3, text: "Selamat bergabung di KasCuan", isNew: false, timestamp: "2 hari yang lalu" }
   ]);
 
   // Simulasi fetch dari database (Opsional: Aktifkan jika API Backend sudah siap)
@@ -81,7 +81,7 @@ export default function Header({
       case 'settings': return 'Pengaturan Profil & Bisnis';
       case 'help': return "Pusat Bantuan";
       case 'auth': return 'Autentikasi Akun';
-      default: return 'EquiCount SME';
+      default: return 'KasCuan';
     }
   };
 

@@ -116,7 +116,7 @@ export default function DashboardView({
       XLSX.utils.book_append_sheet(workbook, worksheet, "Buku Besar");
 
       const today = new Date().toISOString().split('T')[0]; // Hasil: YYYY-MM-DD
-      const fileName = `Laporan_Keuangan_EquiCount_${today}.xlsx`;
+      const fileName = `Laporan_Keuangan_KasCuan_${today}.xlsx`;
 
       XLSX.writeFile(workbook, fileName);
 

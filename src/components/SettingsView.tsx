@@ -428,7 +428,7 @@ export default function SettingsView({
       {/* Footer Interactive Actions Tracker */}
       <footer className="p-4 bg-[#f8f9ff] border border-[#c5c6cd] rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
         <p className="text-xs text-slate-500 leading-relaxed font-sans text-center sm:text-left">
-          Terakhir diatur oleh Anda pada <span className="font-semibold">Budi Santoso (Admin Bisnis)</span>.
+          Terakhir diatur oleh Anda pada (Admin Warung) <span className="font-semibold"></span>.
         </p>
         <div className="flex gap-3 w-full sm:w-auto">
           <button

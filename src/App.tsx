@@ -384,9 +384,9 @@ export default function App() {
               id="landing-logo-home-link"
             >
               <div className="w-8 h-8 bg-[#091426] flex items-center justify-center rounded-lg text-white">
-                <span className="font-bold text-xs">Eq</span>
+                <span className="font-bold text-xs">KC</span>
               </div>
-              <span className="font-sans text-sm font-extrabold text-[#0b1c30]">EquiCount SME</span>
+              <span className="font-sans text-sm font-extrabold text-[#0b1c30]">KasCuan</span>
             </div>
 
             <div className="flex items-center gap-4 text-xs font-semibold">
@@ -396,7 +396,7 @@ export default function App() {
                   onClick={() => setActiveTab('auth')}
                   className="px-4 py-2 bg-[#091426] hover:bg-slate-800 text-[#6cf8bb] rounded-xl transition-all shadow-sm cursor-pointer"
                 >
-                  Masuk Ledger
+                  Coba Sekarang
                 </button>
               ) : (
                 <button
