@@ -61,8 +61,6 @@ router.post('/register', async (req, res) => {
 
         const verificationUrl = `http://localhost:5173/verify-email?token=${verificationToken}`;
         console.log('Skip email verification sementara');
-
-        /*
         await transporter.sendMail({
             from: `"KasCuan" <${process.env.EMAIL_USER}>`,
             to: email,
@@ -72,7 +70,6 @@ router.post('/register', async (req, res) => {
                    <a href="${verificationUrl}" style="padding:10px 20px; background-color:#006c49; color:white; text-decoration:none; border-radius:8px;">Verifikasi Email Saya</a>
                    <p>Jika Anda tidak mendaftar, abaikan email ini.</p>`
         });
-        */
 
         res.status(201).json({
             message: 'Registrasi berhasil! Silakan cek email Anda untuk verifikasi sebelum masuk.'
