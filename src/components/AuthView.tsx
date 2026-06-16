@@ -4,6 +4,7 @@
  */
 
 import React, { useState, FormEvent } from 'react';
+import { API_URL } from '../config';
 import { motion } from 'motion/react';
 import {
   Lock,
@@ -49,11 +50,14 @@ export default function AuthView({ onLoginSuccess, onToast, onOpenLegal }: AuthV
 
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/users/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: loginEmail, password: loginPassword }),
-      });
+      const response = await fetch(`${API_URL}/api/users/login`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+      email: loginEmail,
+      password: loginPassword
+    })
+    });
 
       const data = await response.json();
 
@@ -100,7 +104,7 @@ export default function AuthView({ onLoginSuccess, onToast, onOpenLegal }: AuthV
     const fullName = `${regFirstName} ${regLastName}`.trim();
 
     try {
-      const response = await fetch('http://localhost:5000/api/users/register', {
+      const response = await fetch(`${API_URL}/api/users/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

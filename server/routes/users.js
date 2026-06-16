@@ -60,15 +60,19 @@ router.post('/register', async (req, res) => {
         await client.query('COMMIT');
 
         const verificationUrl = `http://localhost:5173/verify-email?token=${verificationToken}`;
+        console.log('Skip email verification sementara');
+
+        /*
         await transporter.sendMail({
             from: `"KasCuan" <${process.env.EMAIL_USER}>`,
             to: email,
             subject: 'Verifikasi Akun KasCuan Anda',
-            html: `<h3>Selamat datang di EquiCount!</h3>
+            html: `<h3>Selamat datang di KasCuan!</h3>
                    <p>Halo ${full_name}, silakan klik tautan di bawah ini untuk memverifikasi akun Anda:</p>
                    <a href="${verificationUrl}" style="padding:10px 20px; background-color:#006c49; color:white; text-decoration:none; border-radius:8px;">Verifikasi Email Saya</a>
                    <p>Jika Anda tidak mendaftar, abaikan email ini.</p>`
         });
+        */
 
         res.status(201).json({
             message: 'Registrasi berhasil! Silakan cek email Anda untuk verifikasi sebelum masuk.'
