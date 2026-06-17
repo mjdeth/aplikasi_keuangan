@@ -59,7 +59,7 @@ router.post('/register', async (req, res) => {
 
         await client.query('COMMIT');
 
-        const verificationUrl = `http://localhost:5173/verify-email?token=${verificationToken}`;
+        const verificationUrl =`${FRONTEND_URL}/verify-email?token=${verificationToken}`;
         console.log('Skip email verification sementara');
         await transporter.sendMail({
             from: `"KasCuan" <${process.env.EMAIL_USER}>`,
@@ -110,7 +110,7 @@ router.post('/request-reset-password', async (req, res) => {
         if (result.rows.length === 0) return res.status(404).json({ error: 'Email tidak ditemukan.' });
 
         // Kirim Email
-        const resetUrl = `http://localhost:5173/reset-password?token=${resetToken}`;
+        const resetUrl =`${FRONTEND_URL}/reset-password?token=${resetToken}`;
         await transporter.sendMail({
             from: `"KasCuan" <${process.env.EMAIL_USER}>`,
             to: email,

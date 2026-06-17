@@ -26,12 +26,14 @@ import TransactionModal from './components/TransactionModal';
 import HelpCenter from './components/HelpCenter';
 import Terms from './components/Terms';
 import Privacy from './components/Privacy';
+import { API_URL } from './config';
 
 import {
   INITIAL_BUSINESS_PROFILE,
   INITIAL_PREFERENCES,
   INITIAL_TRANSACTIONS
 } from './data/initialData';
+
 
 export default function App() {
   // 1. Core Authentication & Mode States
@@ -117,7 +119,7 @@ export default function App() {
       const user = JSON.parse(userStr);
 
       try {
-        const txResponse = await fetch(`http://localhost:5000/api/transactions/${user.id}`, {
+        const txResponse = await fetch(`${API_URL}/api/transactions/${txData.id}`),{
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -129,8 +131,7 @@ export default function App() {
           }));
           setTransactions(mappedData);
         }
-
-        const settingsResponse = await fetch(`http://localhost:5000/api/settings`, {
+        const settingsResponse = fetch(`${API_URL}/api/setting`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -187,7 +188,7 @@ export default function App() {
 
     try {
       if (txData.id) {
-        const response = await fetch(`http://localhost:5000/api/transactions/${txData.id}`, {
+        const response = await fetch(`${API_URL}/api/transactions`)
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
