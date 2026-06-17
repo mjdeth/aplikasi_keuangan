@@ -119,8 +119,8 @@ export default function App() {
       const user = JSON.parse(userStr);
 
       try {
-        const txResponse = await fetch(`${API_URL}/api/transactions/${txData.id}`),{
-          headers: { 'Authorization': `Bearer ${token}` }
+        const txResponse = await fetch(`${API_URL}/api/transactions/${user.id}`, {
+         headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (txResponse.ok) {
@@ -131,7 +131,7 @@ export default function App() {
           }));
           setTransactions(mappedData);
         }
-        const settingsResponse = fetch(`${API_URL}/api/setting`, {
+        const settingsResponse = await fetch(`${API_URL}/api/settings`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -188,7 +188,7 @@ export default function App() {
 
     try {
       if (txData.id) {
-        const response = await fetch(`${API_URL}/api/transactions`)
+        const response = await fetch(`${API_URL}/api/transactions/${txData.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -205,7 +205,7 @@ export default function App() {
         }
       } else {
         const payload = { ...txData, user_id: user.id };
-        const response = await fetch('http://localhost:5000/api/transactions', {
+        const response = await fetch(`${API_URL}/api/transactions`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -242,7 +242,7 @@ export default function App() {
     // LOGIKA ASLI DATABASE
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch(`http://localhost:5000/api/transactions/${id}`, {
+      const response = await fetch(`${API_URL}/api/transactions/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

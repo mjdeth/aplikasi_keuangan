@@ -16,6 +16,7 @@ import {
   Briefcase
 } from 'lucide-react';
 import { BusinessProfile, UserProfile, Preferences } from '../types';
+import { API_URL } from '../config';
 
 interface SettingsViewProps {
   businessProfile: BusinessProfile;
@@ -79,7 +80,7 @@ export default function SettingsView({
         }
       };
 
-      const response = await fetch(`http://localhost:5000/api/settings`, {
+      const response = await fetch(`${API_URL}/api/settings`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -137,7 +138,7 @@ export default function SettingsView({
       const formData = new FormData();
       formData.append('logo', file);
 
-      const response = await fetch(`http://localhost:5000/api/upload-logo`, {
+      const response = await fetch(`${API_URL}/api/upload-logo`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -172,7 +173,7 @@ export default function SettingsView({
   const handleRequestPasswordReset = async () => {
     onToast('Memproses pengiriman email aman...', 'success');
     try {
-      const response = await fetch(`http://localhost:5000/api/users/request-reset-password`, {
+      const response = await fetch(`${API_URL}/api/users/request-reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: userEmail })
