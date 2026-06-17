@@ -5,6 +5,8 @@ import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import pool from '../db.js';
 
+const FRONTEND_URL = process.env.FRONTEND_URL;
+
 const router = express.Router();
 
 const transporter = nodemailer.createTransport({
