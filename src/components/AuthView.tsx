@@ -125,21 +125,7 @@ export default function AuthView({ onLoginSuccess, onToast, onOpenLegal }: AuthV
       }
       onToast('Pendaftaran Berhasil! Silakan periksa email Anda untuk memverifikasi akun.', 'success');
       setTab('login');
-
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      if (data.businessProfile) {
-        localStorage.setItem('businessProfile', JSON.stringify(data.businessProfile));
-      }
-
-      onToast('Pendaftaran Berhasil! Membuka Dashboard Baru...', 'success');
-
-      onLoginSuccess({
-        fullName: data.user.full_name,
-        email: data.user.email,
-        role: data.user.role,
-        avatarUrl: data.user.avatar_url || 'https://lh3.googleusercontent.com/aida-public/AB6AXuBd6pRN3jnPuz6h0mwwyuNny1yRd1jz-Hxy9QWzMnyO91MDkBwrV7g6T5WzOaveaRS_dxv_RoliGhLlsbozUa87SXSq7a5nvJPwuMGYoHG-BIkK_gm-MWf7iNFGTVBixp_FDvSaQvPGbV9PMGJKe6a5EzlV7Hx4_DMVZlRzQtYMt86P2J9xJDdMO_IjRiYqqcNofjaXd1wfqsJs7AuJEEmvCVAlMbenCvJiff7iCeaBd-uZWKPib6qISk_X28ZFBxHxxImcKHtlIWcI'
-      }, data.businessProfile?.name);
+      return;
     } catch (error) {
       onToast('Gagal terhubung ke server database', 'error');
     } finally {
