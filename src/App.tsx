@@ -46,7 +46,7 @@ export default function App() {
   });
 
   const [activeTab, setActiveTab] = useState<ActiveTab>(() => {
-    return (localStorage.getItem('token') || localStorage.getItem('isDemoMode') === 'true') ? 'dashboard' : 'landing';
+    return localStorage.getItem('token')  ? 'dashboard' : 'landing';
   });
 
   // 2. Data States
