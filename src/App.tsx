@@ -26,6 +26,7 @@ import TransactionModal from './components/TransactionModal';
 import HelpCenter from './components/HelpCenter';
 import Terms from './components/Terms';
 import Privacy from './components/Privacy';
+import ResetPassword from './components/ResetPassword';
 import { API_URL } from './config';
 
 import {
@@ -34,8 +35,11 @@ import {
   INITIAL_TRANSACTIONS
 } from './data/initialData';
 
-
 export default function App() {
+
+  if (window.location.pathname === '/reset-password') {
+  return <ResetPassword />;
+  }
   // 1. Core Authentication & Mode States
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     return !!localStorage.getItem('token') || localStorage.getItem('isDemoMode') === 'true';
