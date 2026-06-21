@@ -53,31 +53,64 @@ export default function App() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
+  const savedUser = localStorage.getItem('user');
+
+  if (savedUser && savedUser !== 'undefined') {
+    try {
       const parsed = JSON.parse(savedUser);
+
       return {
         fullName: parsed.full_name || parsed.fullName,
         email: parsed.email,
         role: parsed.role,
-        avatarUrl: parsed.avatar_url || parsed.avatarUrl || 'https://lh3.googleusercontent.com/aida-public/AB6AXuBd6pRN3jnPuz6h0mwwyuNny1yRd1jz-Hxy9QWzMnyO91MDkBwrV7g6T5WzOaveaRS_dxv_RoliGhLlsbozUa87SXSq7a5nvJPwuMGYoHG-BIkK_gm-MWf7iNFGTVBixp_FDvSaQvPGbV9PMGJKe6a5EzlV7Hx4_DMVZlRzQtYMt86P2J9xJDdMO_IjRiYqqcNofjaXd1wfqsJs7AuJEEmvCVAlMbenCvJiff7iCeaBd-uZWKPib6qISk_X28ZFBxHxxImcKHtlIWcI'
+        avatarUrl:
+          parsed.avatar_url ||
+          parsed.avatarUrl ||
+          ''
       };
+    } catch (err) {
+      console.error('User parse error', err);
+      localStorage.removeItem('user');
     }
-    // Jika demo mode, tampilkan profil demo
-    if (localStorage.getItem('isDemoMode') === 'true') {
-      return { fullName: 'Pengguna Demo', email: 'demo@kascuan.com', role: 'Admin (Simulasi)', avatarUrl: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png' };
-    }
-    return { fullName: 'Tamu', email: '', role: 'Pengunjung', avatarUrl: '' };
-  });
+  }
+
+  if (localStorage.getItem('isDemoMode') === 'true') {
+    return {
+      fullName: 'Pengguna Demo',
+      email: 'demo@kascuan.com',
+      role: 'Admin (Simulasi)',
+      avatarUrl: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'
+    };
+  }
+
+  return {
+    fullName: 'Tamu',
+    email: '',
+    role: 'Pengunjung',
+    avatarUrl: ''
+  };
+});
 
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile>(() => {
     const saved = localStorage.getItem('equicount_profile');
-    return saved ? JSON.parse(saved) : INITIAL_BUSINESS_PROFILE;
-  });
+    try {
+          return saved
+                ? JSON.parse(saved)
+                : INITIAL_BUSINESS_PROFILE;
+    } catch {
+      return INITIAL_BUSINESS_PROFILE;
+    }
+    });
 
   const [preferences, setPreferences] = useState<Preferences>(() => {
     const saved = localStorage.getItem('equicount_preferences');
-    return saved ? JSON.parse(saved) : INITIAL_PREFERENCES;
+    try {
+  return saved
+    ? JSON.parse(saved)
+    : INITIAL_PREFERENCES;
+} catch {
+  return INITIAL_PREFERENCES;
+}
   });
 
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -116,7 +149,13 @@ export default function App() {
       const userStr = localStorage.getItem('user');
 
       if (!token || !userStr) return;
-      const user = JSON.parse(userStr);
+      let user;
+      try {
+          user = JSON.parse(userStr);
+      } catch (err) {
+          console.error('User parse error', err);
+          return;
+      }
 
       try {
         const txResponse = await fetch(`${API_URL}/api/transactions/${user.id}`, {
@@ -184,7 +223,13 @@ export default function App() {
       dispatchToast('Akses ditolak. Silakan login kembali.', 'error');
       return;
     }
-    const user = JSON.parse(userStr);
+    let user;
+    try {
+      user = JSON.parse(userStr);
+    } catch (err) {
+      console.error('User parse error', err);
+      return;
+    }
 
     try {
       if (txData.id) {

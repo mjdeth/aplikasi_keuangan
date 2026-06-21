@@ -61,7 +61,7 @@ router.post('/register', async (req, res) => {
 
         await client.query('COMMIT');
 
-        const verificationUrl =`${FRONTEND_URL}/verify-email?token=${verificationToken}`;
+        const verificationUrl =`https://kascuan-api-production.up.railway.app/api/users/verify-email?token=${verificationToken}`;
         console.log('Skip email verification sementara');
         await transporter.sendMail({
             from: `"KasCuan" <${process.env.EMAIL_USER}>`,
@@ -69,7 +69,7 @@ router.post('/register', async (req, res) => {
             subject: 'Verifikasi Akun KasCuan Anda',
             html: `<h3>Selamat datang di KasCuan!</h3>
                    <p>Halo ${full_name}, silakan klik tautan di bawah ini untuk memverifikasi akun Anda:</p>
-                   <a href="${verificationUrl}" style="padding:10px 20px; background-color:#006c49; color:white; text-decoration:none; border-radius:8px;">Verifikasi Email Saya</a>
+                   <a href="${verificationUrl}" style="padding:10px 20px; background-color:#006c49; color:white; text-decoration:none; border-radius:8px;">Verifikasi Akun</a>
                    <p>Jika Anda tidak mendaftar, abaikan email ini.</p>`
         });
 
